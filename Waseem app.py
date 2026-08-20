@@ -10,7 +10,7 @@ if 'sales_data' not in st.session_state:
         "التاريخ", "اسم القطعة", "المقاس/اللون", "الكمية", "سعر Tكلفة", "سعر البيع", "إجمالي المبيعات", "صافي الربح"
     ])
 
-col1, col2 = st.columns()
+col1, col2 = st.columns(2)
 
 with col1:
     st.header("➕ تسجيل عملية بيع جديدة")
