@@ -1,10 +1,5 @@
-import os
-# سطر ذكي يقوم بتثبيت المكتبة الناقصة تلقائياً فوراً
-os.system("pip install openpyxl")
-
 import streamlit as st
 import pandas as pd
-import io
 
 st.set_page_config(page_title="نظام المبيعات المحترف", page_icon="📊")
 st.title("📊 نظام إدارة المبيعات المطور")
@@ -37,16 +32,16 @@ if not st.session_state.df.empty:
     st.markdown("### 📈 رسم بياني للمبيعات حسب المنتج")
     st.bar_chart(data=st.session_state.df, x="المنتج", y="الإجمالي")
     
-    # زر تحميل ملف إكسل Excel
-    buffer = io.BytesIO()
-    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-        st.session_state.df.to_excel(writer, index=False, sheet_name='المبيعات')
+    # تحويل الجدول إلى صيغة CSV متوافقة مع الإكسل
+    csv_data = st.session_state.df.to_csv(index=False).encode('utf-8-sig')
     
+    # زر تحميل البيانات السليم
     st.download_button(
-        label="📥 تحميل جدول المبيعات كملف Excel",
-        data=buffer.getvalue(),
-        file_name="sales_report.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        label="📥 تحميل جدول المبيعات (متوافق مع Excel)",
+        data=csv_data,
+        file_name="sales_report.csv",
+        mime="text/csv"
     )
 else:
     st.info("لا توجد مبيعات مسجلة حتى الآن. أضف منتجاً لتشاهد لوحة التحكم الحية.")
+        
