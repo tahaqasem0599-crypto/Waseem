@@ -1,8 +1,22 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="نظام المبيعات المحترف", page_icon="📊")
+# إعدادات الميتا والإعلان التلقائي عند مشاركة الرابط
+st.set_page_config(
+    page_title="نظام مبيعات وسيم نائل", 
+    page_icon="📊",
+    menu_items={
+        'Get Help': 'https://streamlit.app',
+        'Report a bug': 'https://streamlit.app',
+        'About': "تطبيق وسيم نائل لإدارة المبيعات الاحترافية"
+    }
+)
+
+# كود لمنع الترجمة التلقائية داخل التطبيق
+st.markdown('<div translate="no">', unsafe_allow_html=True)
+
 st.title("📊 نظام إدارة المبيعات المطور")
+st.write("صُنع بواسطة: وسيم نائل ✨")
 
 if 'df' not in st.session_state:
     st.session_state.df = pd.DataFrame(columns=["المنتج", "الكمية", "السعر", "الإجمالي"])
@@ -20,22 +34,12 @@ if st.button("إضافة"):
 
 if not st.session_state.df.empty:
     st.markdown("---")
-    
-    # حساب وعرض المجموع الإجمالي
     total_revenue = st.session_state.df["الإجمالي"].sum()
     st.metric(label="💰 إجمالي الإيرادات والأرباح", value=f"{total_revenue} $")
-    
-    # عرض الجدول
     st.dataframe(st.session_state.df, use_container_width=True)
-    
-    # رسم بياني تفاعلي للمبيعات
     st.markdown("### 📈 رسم بياني للمبيعات حسب المنتج")
     st.bar_chart(data=st.session_state.df, x="المنتج", y="الإجمالي")
-    
-    # تحويل الجدول إلى صيغة CSV متوافقة مع الإكسل
     csv_data = st.session_state.df.to_csv(index=False).encode('utf-8-sig')
-    
-    # زر تحميل البيانات السليم
     st.download_button(
         label="📥 تحميل جدول المبيعات (متوافق مع Excel)",
         data=csv_data,
@@ -44,4 +48,5 @@ if not st.session_state.df.empty:
     )
 else:
     st.info("لا توجد مبيعات مسجلة حتى الآن. أضف منتجاً لتشاهد لوحة التحكم الحية.")
-        
+
+st.markdown('</div>', unsafe_allow_html=True)
