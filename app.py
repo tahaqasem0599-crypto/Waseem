@@ -1,26 +1,18 @@
 import streamlit as st
 import pandas as pd
-import sqlite3
-from datetime import datetime
-import io
 
-st.set_page_config(page_title="Shop Sales")
+st.title("📊 نظام المبيعات")
 
-def init_db():
-    conn = sqlite3.connect('shop_sales.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS sales (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            sale_date TEXT,
-            item_name TEXT,
-            amount REAL
-        )
-    ''')
-    conn.commit()
-    conn.close()
+if 'df' not in st.session_state:
+    st.session_state.df = pd.DataFrame(columns=["المنتج", "السعر"])
 
-init_db()
+name = st.text_input("اسم المنتج:")
+price = st.number_input("السعر:", min_value=1)
 
-st.title("📊 نظام إدارة مبيعات المتجر")
-st.write("تم تهيئة قاعدة البيانات بنجاح وجاهزة للاستخدام.")
+if st.button("إضافة"):
+    if name:
+        new_row = pd.DataFrame([{"المنتج": name, "السعر": price}])
+        st.session_state.df = pd.concat([st.session_state.df, new_row], ignore_index=True)
+        st.success("تم الحفظ!")
+
+st.dataframe(st.session_state.df, use_container_width=True)
