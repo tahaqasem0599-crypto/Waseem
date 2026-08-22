@@ -65,13 +65,14 @@ st.markdown("""
 whatsapp_number = "972598338642" 
 whatsapp_url = f"https://wa.me{whatsapp_number}?text=مرحباً%20متجر%20وسيم%20نائل،%20أود%20الاستفسار%20عن%20الملابس"
 
+# رابط صورة تيشرت البولو الكحلي
+polo_image_url = "https://githubusercontent.com"
+
 # 3. القائمة الجانبية (Sidebar)
 with st.sidebar:
-    # أيقونة بروفايل بديلة تظهر فوراً دون أي أخطاء أو روابط مكسورة
     st.markdown('<span class="profile-emoji">👤</span>', unsafe_allow_html=True)
     st.markdown("<p style='text-align:center !important;'>المؤسس والمطور: وسيم نائل</p>", unsafe_allow_html=True)
     
-    # إضافة زر الواتساب في القائمة الجانبية
     st.markdown(f'<a href="{whatsapp_url}" target="_blank" class="whatsapp-btn">💬 تواصل واتساب مباشر</a>', unsafe_allow_html=True)
     
     st.markdown("---")
@@ -91,27 +92,21 @@ if section == "الرئيسية":
     st.write("• أسعار تنافسية تناسب الجميع.")
     st.write("• توصيل سريع وآمن لكافة المناطق.")
 
-# القسم الثاني: تشكيلة الملابس
+# القسم الثاني: تشكيلة الملابس (تم تعديل السعر ليعرض السعر الحالي فقط)
 elif section == "تشكيلة الملابس":
     st.title("👕 أحدث الموديلات المتوفرة")
-    st.write("تصفح تشكيلتنا المميزة المستوحاة من أفضل البراندات العالمية:")
+    st.write("تصفح تشكيلتنا المميزة والجديدة حصرياً في متجرنا:")
     
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown('<div class="product-box">', unsafe_allow_html=True)
-        st.subheader("تيشرت رياضي مميز")
-        st.write("السعر: 25 دولار")
-        if st.button("إضافة للسلة", key="p1"):
-            st.success("تم إضافة التيشرت الرياضي إلى السلة!")
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-    with col2:
-        st.markdown('<div class="product-box">', unsafe_allow_html=True)
-        st.subheader("جاكيت كاجوال شتوي")
-        st.write("السعر: 45 دولار")
-        if st.button("إضافة للسلة", key="p2"):
-            st.success("تم إضافة الجاكيت الكاجوال إلى السلة!")
-        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="product-box">', unsafe_allow_html=True)
+    st.image(polo_image_url, caption="تيشرت بولو كحلي راقي - Originals", use_container_width=True)
+    st.subheader("تيشرت بولو كحلي - Originals")
+    st.write("**المواصفات:** قطن ناعم ممتاز، مريح جداً ومناسب للكاجوال والطلعات.")
+    st.write("💰 **السعر:** <span style='color: #0056b3; font-size: 20px; font-weight: bold;'>25 شيكل فقط</span>", unsafe_allow_html=True)
+    
+    # رابط مخصص للواتساب مع السعر الجديد المعروض
+    polo_whatsapp_url = f"https://wa.me{whatsapp_number}?text=مرحباً%20وسيم،%20أريد%20طلب%20تيشرت%20البولو%20الكحلي%20المعروض%20بـ%2025%20شيكل"
+    st.markdown(f'<a href="{polo_whatsapp_url}" target="_blank" class="whatsapp-btn">🛍️ اطلب القطعة الآن عبر الواتساب</a>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # القسم الثالث: رفع طلب جديد
 elif section == "رفع طلب جديد":
@@ -137,7 +132,6 @@ elif section == "تواصل معنا":
     st.title("📞 معلومات التواصل")
     st.write("يسعدنا دائماً تواصلكم معنا للاستفسارات والشكاوي:")
     
-    # إضافة زر الواتساب الكبير في صفحة التواصل الأساسية
     st.markdown(f'<a href="{whatsapp_url}" target="_blank" class="whatsapp-btn" style="font-size: 18px; padding: 15px;">💬 اضغط هنا لمراسلتنا عبر الواتساب واطلب فوراً</a>', unsafe_allow_html=True)
     
     st.write("📧 البريد الإلكتروني: support@waseem-store.com")
