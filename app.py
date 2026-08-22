@@ -1,61 +1,111 @@
 import streamlit as st
 
-# إعدادات الصفحة الاحترافية
-st.set_page_config(page_title="منصة وسيم نائل للخدمات الرقمية", page_icon="💰", layout="wide")
+# إعدادات المنصة الاحترافية الشاملة لوسيم نائل
+st.set_page_config(page_title="منصة وسيم نائل الشاملة والتجارة الرقمية", page_icon="💎", layout="wide")
 
-# الهيدر العلوي والترحيب
-st.markdown("<h1 style='text-align: center; color: #1E3A8A;'>🔥 منصة وسيم نائل الرقمية الشاملة</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; font-size: 20px;'>بوابتك للخدمات الذكية، الأدوات الاحترافية، وفرص الربح</p>", unsafe_allow_html=True)
+# تصميم الهيدر العلوي الفخم
+st.markdown("<h1 style='text-align: center; color: #1E3A8A;'>💎 منصة وسيم نائل الرقمية والتجارية الشاملة</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: 18px; color: #4B5563;'>بوابتك الذكية للتجارة الإلكترونية، الأدوات البرمجية، والخدمات الإعلانية</p>", unsafe_allow_html=True)
 st.divider()
 
-# تقسيم الصفحة إلى قسمين (يسار ويمين) لزيادة التنظيم
-col1, col2 = st.columns([1, 2])
+# رابط الواتساب المباشر لوسيم نائل (مربوط برقمك مباشرة)
+whatsapp_base_url = "https://wa.me"
 
-with col1:
-    st.markdown("### 👤 صاحب المنصة")
-    st.info("**الاسم:** وسيم نائل\n\n**التخصص:** مستشار أعمال ومطور حلول رقمية.")
-    
-    # 💰 القسم الأول: طلب الخدمات المدفوعة مباشر
-    st.markdown("### 💼 اطلب خدمتك المدفوعة")
-    st.write("احصل على استشارة مخصصة أو حلول برمجية وتسويقية لعملك الآن.")
-    
-    # زر تواصل مباشر للاتفاق المالي عبر الواتساب
-    whatsapp_url = "https://wa.meً%20أستاذ%20وسيم%20أريد%20طلب%20خدمة%20مدفوعة"
-    st.markdown(f'<a href="{whatsapp_url}" target="_blank"><button style="width:100%; background-color:#25D366; color:white; border:none; padding:10px; border-radius:5px; font-size:16px; cursor:pointer;">💬 اطلب الخدمة واستلم أرباحك عبر الواتساب</button></a>', unsafe_allow_html=True)
+# تقسيم الشاشة إلى تبويبات احترافية لتشمل كل شيء بدون استثناء
+tab_store, tab_services, tab_ai, tab_finance = st.tabs([
+    "🛍️ متجر الملابس الفاخرة", 
+    "💼 الخدمات الرقمية والإعلانات", 
+    "🤖 أدوات الذكاء الاصطناعي", 
+    "📊 الحاسبة التجارية والأرباح"
+])
 
-with col2:
-    # 🔒 القسم الثاني: الأدوات الذكية والاشتراكات (SaaS)
-    st.markdown("### ⚡ الأدوات الذكية (متاح للمشتركين)")
+# 1️⃣ التبويب الأول: متجر الملابس والتجارة
+with tab_store:
+    st.header("👕 أحدث تشكيلات الملابس والأزياء الفاخرة")
+    st.write("تصفح واطلب قطعتك المفضلة الآن، التوصيل متوفر لجميع المناطق.")
     
-    tab1, tab2 = st.tabs(["🤖 أداة كتابة الإعلانات", "📈 حاسبة الأرباح الذكية"])
+    col_img1, col_img2 = st.columns(2)
+    with col_img1:
+        st.subheader("🧥 جاكيتات وهوديز شتوية سبورت")
+        st.write("السعر: **150 شيكل**")
+        msg1 = "مرحباً أستاذ وسيم، أريد طلب الجاكيت الشتوي السبورت (150 شيكل)"
+        st.markdown(f'<a href="{whatsapp_base_url}{msg1}" target="_blank"><button style="background-color:#25D366; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">🛍️ اطلب عبر الواتساب</button></a>', unsafe_allow_html=True)
+        
+    with col_img2:
+        st.subheader("👕 أطقم كاجوال صيفية ورياضية")
+        st.write("السعر: **120 شيكل**")
+        msg2 = "مرحباً أستاذ وسيم، أريد طلب الطقم الكاجوال الرياضي (120 شيكل)"
+        st.markdown(f'<a href="{whatsapp_base_url}{msg2}" target="_blank"><button style="background-color:#25D366; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">🛍️ اطلب عبر الواتساب</button></a>', unsafe_allow_html=True)
+
+# 2️⃣ التبويب الثاني: الخدمات الرقمية والتسويق
+with tab_services:
+    st.header("💼 خدمات وسيم نائل للأعمال والتسويق")
+    st.write("نساعدك في تنمية أعمالك ومبيعاتك عبر الإنترنت من خلال خدماتنا المدفوعة الاحترافية.")
     
-    with tab1:
-        st.write("استخدم الذكاء الاصطناعي لتوليد نصوص إعلانية تبيع فوراً.")
-        prod_name = st.text_input("اكتب اسم منتجك:")
-        if st.button("توليد النص الإعلاني"):
-            if prod_name:
-                st.success(f"🔥 إعلان احترافي لـ ({prod_name}): اشتري الآن واحصل على خصم 50% لفترة محدودة مع المستشار وسيم نائل!")
+    srv1, srv2, srv3 = st.columns(3)
+    with srv1:
+        st.subheader("🎯 إدارة الحملات الإعلانية")
+        st.write("نطلق لك إعلانات ممولة احترافية على فيسبوك وإنستغرام لتجلب لك آلاف الزبائن.")
+        msg_srv1 = "مرحباً أستاذ وسيم، أريد استشارة حول إدارة الحملات الإعلانية المموّلة"
+        st.markdown(f'<a href="{whatsapp_base_url}{msg_srv1}" target="_blank"><button style="width:100%; background-color:#1E3A8A; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">💬 احجز الخدمة الآن</button></a>', unsafe_allow_html=True)
+        
+    with srv2:
+        st.subheader("🎨 تصميم الجرافيك والهويات")
+        st.write("تصميم شعارات، بنرات إعلانية، وصور احترافية لمنتجاتك تجذب المشترين.")
+        msg_srv2 = "مرحباً أستاذ وسيم، أريد طلب خدمة تصميم جرافيك وشعارات"
+        st.markdown(f'<a href="{whatsapp_base_url}{msg_srv2}" target="_blank"><button style="width:100%; background-color:#1E3A8A; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">💬 احجز الخدمة الآن</button></a>', unsafe_allow_html=True)
+        
+    with srv3:
+        st.subheader("🌐 إنشاء المواقع والتطبيقات")
+        st.write("برمجة صفحات هبوط وتطبيقات ذكية مخصصة لعملك مثل هذا التطبيق تماماً.")
+        msg_srv3 = "مرحباً أستاذ وسيم، أريد طلب خدمة برمجة وإنشاء موقع إلكتروني"
+        st.markdown(f'<a href="{whatsapp_base_url}{msg_srv3}" target="_blank"><button style="width:100%; background-color:#1E3A8A; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">💬 احجز الخدمة الآن</button></a>', unsafe_allow_html=True)
+
+# 3️⃣ التبويب الثالث: أدوات الذكاء الاصطناعي (SaaS)
+with tab_ai:
+    st.header("🤖 أدوات الذكاء الاصطناعي الذكية لرواد الأعمال")
+    st.write("أدوات برمجية ذكية وحصرية لمساعدتك في كتابة المحتوى الإعلاني والتسويقي فوراً.")
+    
+    ai_choice = st.selectbox("اختر أداة الذكاء الاصطناعي التي تريد استخدامها:", ["كاتب الإعلانات السريعة", "صانع الأفكار التسويقية"])
+    
+    if ai_choice == "كاتب الإعلانات السريعة":
+        prod = st.text_input("اكتب اسم المنتج أو الخدمة التي تبيعها:")
+        if st.button("🚀 توليد نص إعلاني ذكي"):
+            if prod:
+                st.success(f"🔥 **الإعلان المقترح:** هل تبحث عن أفضل ({prod})؟ لا تبحث بعيداً! منصة وسيم نائل تقدم لك الجودة الأعلى والأسعار الأفضل في السوق مع خدمة توصيل سريعة. اضغط للطلب الآن ولا تفوت الفرصة! 🔥")
             else:
-                st.warning("الرجاء كتابة اسم المنتج أولاً.")
+                st.warning("يرجى كتابة اسم المنتج أولاً لتوليد الإعلان.")
                 
-    with tab2:
-        st.write("احسب صافي أرباح حملتك الإعلانية بدقة.")
-        revenue = st.number_input("إجمالي الإيرادات ($):", min_value=0.0, value=100.0)
-        costs = st.number_input("تكلفة الإعلانات والمصاريف ($):", min_value=0.0, value=40.0)
-        if st.button("احسب صافي الربح"):
-            profit = revenue - costs
-            st.metric(label="صافي أرباحك المباشرة", value=f"${profit}")
+    elif ai_choice == "صانع الأفكار التسويقية":
+        niche = st.text_input("اكتب مجالك التجاري (مثال: ملابس، عطور، مطاعم):")
+        if st.button("💡 توليد أفكار تسويقية"):
+            if niche:
+                st.info(f"💡 **أفكار لزيادة مبيعات {niche}:**\n1. اعمل عرض 'اشتري قطعة واصل على الثانية بنصف السعر'.\n2. أطلق إعلان ممول مستهدفاً لقطتك الشخصية الفخمة لبناء الثقة.\n3. قدم كود خصم خاص لأول 50 مشتري يتواصلون معك عبر الواتساب.")
 
-    st.divider()
-
-    # 🔗 القسم الثالث: التسويق بالعمولة (Affiliate Links)
-    st.markdown("### 🌟 توصيات وسيم نائل (روابط مخصصة)")
-    st.write("أدوات ومواقع ننصح بها لبناء عملك على الإنترنت (نحصل على عمولة عند الشراء):")
+# 4️⃣ التبويب الرابع: الحاسبة المالية والتجارية
+with tab_finance:
+    st.header("📊 الحاسبة المالية الذكية لحساب صافي الأرباح والـ ROI")
+    st.write("ادخل الأرقام الخاصة بتجارتك أو حملتك الإعلانية لحساب صافي ربحك بدقة بالشيكل.")
     
-    # استبدل هذه الروابط بروابط الأفلييت الخاصة بك لاحقاً
-    st.markdown("- 🛠️ [أفضل استضافة مواقع عالمية بخصم خاص](https://hostinger.com)")
-    st.markdown("- 🎨 [اشترك في Canva الاحترافية للتصميم](https://canva.com)")
+    currency = st.radio("اختر عملة الحساب والتعامل:", ["ILS (شيكل جديد)", "USD (دولار أمريكي)"])
+    
+    rev = st.number_input("إجمالي المبيعات أو الإيرادات:", min_value=0.0, value=1000.0)
+    cost_prod = st.number_input("تكلفة البضاعة أو المنتجات الأساسية:", min_value=0.0, value=400.0)
+    cost_ads = st.number_input("تكلفة الإعلانات المموّلة والمصاريف الأخرى:", min_value=0.0, value=200.0)
+    
+    if st.button("🧮 احسب صافي الأرباح فوراً"):
+        total_costs = cost_prod + cost_ads
+        net_profit = rev - total_costs
+        
+        st.metric(label=f"صافي أرباح وسيم نائل المباشرة ({currency})", value=f"{net_profit} {currency}")
+        if net_profit > 0:
+            st.balloons()
+            st.success("🎉 عمل ممتاز! تجارتك تحقق أرباحاً صافية وصحية.")
+        elif net_profit == 0:
+            st.warning("⚠️ أنت في نقطة التعادل (لا يوجد أرباح ولا خسائر). حاول تقليل التكاليف.")
+        else:
+            st.error("❌ تنبيه: هناك خسارة مالية. يرجى مراجعة ميزانية الإعلانات وأسعار البضائع فوراً.")
 
 st.divider()
-st.markdown("<p style='text-align: center; color: gray;'>© 2026 جميع الحقوق محفوظة للمطور وسيم نائل</p>", unsafe_allow_html=True)
-  
+st.markdown("<p style='text-align: center; color: #9CA3AF;'>© 2026 جميع الحقوق محفوظة ومطورة بالكامل بواسطة المستشار وسيم نائل</p>", unsafe_allow_html=True)
+    
