@@ -1,52 +1,18 @@
 import streamlit as st
-import pandas as pd
 
-# إعدادات الميتا والإعلان التلقائي عند مشاركة الرابط
-st.set_page_config(
-    page_title="نظام مبيعات وسيم نائل", 
-    page_icon="📊",
-    menu_items={
-        'Get Help': 'https://streamlit.app',
-        'Report a bug': 'https://streamlit.app',
-        'About': "تطبيق وسيم نائل لإدارة المبيعات الاحترافية"
-    }
-)
+# إعدادات الصفحة وظهور اسمك في علامة تبويب المتصفح العلوي
+st.set_page_config(page_title="تطبيق وسيم نائل", page_icon="✨", layout="centered")
 
-# كود لمنع الترجمة التلقائية داخل التطبيق
-st.markdown('<div translate="no">', unsafe_allow_html=True)
+# تصميم واجهة التطبيق الشخصية
+st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>مرحباً بكم في تطبيقي الشخصي</h1>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center; color: #31333F;'>إعداد وتطوير: وسيم نائل</h3>", unsafe_allow_html=True)
 
-st.title("📊 نظام إدارة المبيعات المطور")
-st.write("صُنع بواسطة: وسيم نائل ✨")
+st.divider()
 
-if 'df' not in st.session_state:
-    st.session_state.df = pd.DataFrame(columns=["المنتج", "الكمية", "السعر", "الإجمالي"])
+# محتوى تعريفي بسيط وجاهز
+st.info("💡 هذا التطبيق تم إنشاؤه ونشره بنجاح باسمي وصورتي عبر منصة Streamlit Cloud.")
 
-name = st.text_input("اسم المنتج:")
-qty = st.number_input("الكمية:", min_value=1, value=1)
-price = st.number_input("السعر للملف الواحد:", min_value=1)
+st.write("يمكنك الآن استخدام هذا الرابط المخصص ونشره كإعلان ممول أو مشاركته مع أصدقائك وعملائك.")
 
-if st.button("إضافة"):
-    if name:
-        total = qty * price
-        new_row = pd.DataFrame([{"المنتج": name, "الكمية": qty, "السعر": price, "الإجمالي": total}])
-        st.session_state.df = pd.concat([st.session_state.df, new_row], ignore_index=True)
-        st.success("تم الحفظ بنجاح!")
-
-if not st.session_state.df.empty:
-    st.markdown("---")
-    total_revenue = st.session_state.df["الإجمالي"].sum()
-    st.metric(label="💰 إجمالي الإيرادات والأرباح", value=f"{total_revenue} $")
-    st.dataframe(st.session_state.df, use_container_width=True)
-    st.markdown("### 📈 رسم بياني للمبيعات حسب المنتج")
-    st.bar_chart(data=st.session_state.df, x="المنتج", y="الإجمالي")
-    csv_data = st.session_state.df.to_csv(index=False).encode('utf-8-sig')
-    st.download_button(
-        label="📥 تحميل جدول المبيعات (متوافق مع Excel)",
-        data=csv_data,
-        file_name="sales_report.csv",
-        mime="text/csv"
-    )
-else:
-    st.info("لا توجد مبيعات مسجلة حتى الآن. أضف منتجاً لتشاهد لوحة التحكم الحية.")
-
-st.markdown('</div>', unsafe_allow_html=True)
+# إضافة تذييل الصفحة باسمك
+st.caption("© 2026 جميع الحقوق محفوظة | وسيم نائل")
