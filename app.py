@@ -65,8 +65,8 @@ st.markdown("""
 whatsapp_number = "972598338642" 
 whatsapp_url = f"https://wa.me{whatsapp_number}?text=مرحباً%20متجر%20وسيم%20نائل،%20أود%20الاستفسار%20عن%20الملابس"
 
-# رابط صورة تيشرت البولو الكحلي
-polo_image_url = "https://githubusercontent.com"
+# رابط صورة تيشرت بولو مباشر ومستقر جداً من الإنترنت ومضمون تشغيله فوراً
+polo_image_url = "https://unsplash.com"
 
 # 3. القائمة الجانبية (Sidebar)
 with st.sidebar:
@@ -92,18 +92,17 @@ if section == "الرئيسية":
     st.write("• أسعار تنافسية تناسب الجميع.")
     st.write("• توصيل سريع وآمن لكافة المناطق.")
 
-# القسم الثاني: تشكيلة الملابس (تم تعديل السعر ليعرض السعر الحالي فقط)
+# القسم الثاني: تشكيلة الملابس
 elif section == "تشكيلة الملابس":
     st.title("👕 أحدث الموديلات المتوفرة")
     st.write("تصفح تشكيلتنا المميزة والجديدة حصرياً في متجرنا:")
     
     st.markdown('<div class="product-box">', unsafe_allow_html=True)
-    st.image(polo_image_url, caption="تيشرت بولو كحلي راقي - Originals", use_container_width=True)
+    st.image(polo_image_url, caption="تيشرت بولو راقي - كاجوال مميز", use_container_width=True)
     st.subheader("تيشرت بولو كحلي - Originals")
     st.write("**المواصفات:** قطن ناعم ممتاز، مريح جداً ومناسب للكاجوال والطلعات.")
     st.write("💰 **السعر:** <span style='color: #0056b3; font-size: 20px; font-weight: bold;'>25 شيكل فقط</span>", unsafe_allow_html=True)
     
-    # رابط مخصص للواتساب مع السعر الجديد المعروض
     polo_whatsapp_url = f"https://wa.me{whatsapp_number}?text=مرحباً%20وسيم،%20أريد%20طلب%20تيشرت%20البولو%20الكحلي%20المعروض%20بـ%2025%20شيكل"
     st.markdown(f'<a href="{polo_whatsapp_url}" target="_blank" class="whatsapp-btn">🛍️ اطلب القطعة الآن عبر الواتساب</a>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
@@ -136,3 +135,4 @@ elif section == "تواصل معنا":
     
     st.write("📧 البريد الإلكتروني: support@waseem-store.com")
     st.write("📍 الموقع: العالم العربي")
+    
