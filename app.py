@@ -1,13 +1,13 @@
 import streamlit as st
 
-# 1. إعدادات الصفحة والأيقونة
+# 1. إعدادات الصفحة
 st.set_page_config(
-    page_title="متجر وسيم نائل للملابس",
-    page_icon="👑",
+    page_title="بنك كسوة أطفال غزة - وسيم نائل",
+    page_icon="👶",
     layout="centered"
 )
 
-# 2. تصميم وتنسيق الواجهة ودعم اللغة العربية (RTL) والأزرار الملونة
+# 2. التنسيق العربي والجميل للواجهة
 st.markdown("""
     <style>
     .reportview-container .main .block-container {
@@ -21,118 +21,87 @@ st.markdown("""
     }
     .stButton > button {
         width: 100%;
-        background-color: #0056b3;
+        background-color: #ff4b4b;
         color: white;
         border-radius: 8px;
+        font-weight: bold;
     }
-    .product-box {
-        border: 1px solid #ddd;
-        padding: 15px;
-        border-radius: 10px;
-        text-align: center;
+    .box {
+        border: 2px dashed #0056b3;
+        padding: 20px;
+        border-radius: 12px;
+        background-color: #f0f7ff;
         margin-bottom: 20px;
-        background-color: #f9f9f9;
     }
-    /* تنسيق زر الواتساب الأخضر الاحترافي */
     .whatsapp-btn {
         display: block;
         width: 100%;
         background-color: #25D366;
         color: white !important;
         text-align: center;
-        padding: 10px;
+        padding: 12px;
         border-radius: 8px;
         text-decoration: none;
         font-weight: bold;
-        font-family: 'Cairo', sans-serif;
-        margin-top: 10px;
-        margin-bottom: 10px;
-    }
-    .whatsapp-btn:hover {
-        background-color: #128C7E;
-    }
-    /* تنسيق أيقونة البروفايل البديلة لتبدو احترافية */
-    .profile-emoji {
-        font-size: 80px;
-        text-align: center;
-        display: block;
-        margin: 10px auto;
+        margin-top: 15px;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# رقم واتسابك الخاص بالمقدمة الدولية الصحيحة
-whatsapp_number = "972598338642" 
-whatsapp_url = f"https://wa.me{whatsapp_number}?text=مرحباً%20متجر%20وسيم%20نائل،%20أود%20الاستفسار%20عن%20الملابس"
+whatsapp_number = "972598338642"
 
-# رابط صورة تيشرت بولو مباشر ومستقر جداً من الإنترنت ومضمون تشغيله فوراً
-polo_image_url = "https://unsplash.com"
-
-# 3. القائمة الجانبية (Sidebar)
+# 3. القائمة الجانبية للتنقل
 with st.sidebar:
-    st.markdown('<span class="profile-emoji">👤</span>', unsafe_allow_html=True)
-    st.markdown("<p style='text-align:center !important;'>المؤسس والمطور: وسيم نائل</p>", unsafe_allow_html=True)
-    
-    st.markdown(f'<a href="{whatsapp_url}" target="_blank" class="whatsapp-btn">💬 تواصل واتساب مباشر</a>', unsafe_allow_html=True)
-    
-    st.markdown("---")
-    st.title("📂 الأقسام الرئيسية")
-    section = st.radio("انتقل إلى:", ["الرئيسية", "تشكيلة الملابس", "رفع طلب جديد", "تواصل معنا"])
+    st.markdown("<h2 style='text-align:center;'>👶 بنك الكسوة</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align:center;'>فكرة المطور: وسيم نائل</p>", unsafe_allow_html=True)
+    section = st.radio("اختار القسم:", ["💡 عن الفكرة", "🔍 تصفح المقاسات المتوفرة", "🔄 اعرض ملابس للتبادل"])
 
-# القسم الأول: الرئيسية
-if section == "الرئيسية":
-    st.title("مرحباً بكم في متجر وسيم نائل الإلكتروني 🚀")
-    st.write("وجهتكم الأولى لأحدث صيحات الموضة والملابس الرياضية والكاجوال في العالم العربي.")
+# القسم الأول: شرح الفكرة
+if section == "💡 عن الفكرة":
+    st.title("مرحباً بكم في بنك مقاسات أطفال غزة 🇵🇸")
+    st.write("أول تطبيق في غزة لمقايضة وتبديل ملابس الأطفال مجاناً! ملابس أولادك صغرت عليهم؟ لا ترميها ولا تشتري بغالي، بدّلها بمقاس أكبر من محلي فوراً.")
     
-    st.markdown('<span class="profile-emoji">👑</span>', unsafe_allow_html=True)
-    st.markdown("<p style='text-align:center !important;'>وسيم نائل - نرحب بكم في متجرنا</p>", unsafe_allow_html=True)
-            
-    st.subheader("🌟 لماذا تختار متجرنا؟")
-    st.write("• جودة عالية وخامات أصلية ممتازة.")
-    st.write("• أسعار تنافسية تناسب الجميع.")
-    st.write("• توصيل سريع وآمن لكافة المناطق.")
+    st.markdown("""
+    <div class="box">
+    <h3>🔄 كيف بتستفيد هلقيت؟</h3>
+    <p>1. بتصور الملابس النظيفة اللي صغرت على ابنك وترفعها ع التطبيق.</p>
+    <p>2. بتدور ع المقاس الجديد اللي بدك إياه لأولادك في قسم المتوفر.</p>
+    <p>3. بتشرفنا على المحل (مركز التبادل)، بتسلمنا القديم وبتستلم الجديد ونقداً رسوم الفحص 5 شيكل فقط!</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-# القسم الثاني: تشكيلة الملابس
-elif section == "تشكيلة الملابس":
-    st.title("👕 أحدث الموديلات المتوفرة")
-    st.write("تصفح تشكيلتنا المميزة والجديدة حصرياً في متجرنا:")
+# القسم الثاني: تصفح المقاسات
+elif section == "🔍 تصفح المقاسات المتوفرة":
+    st.title("👕 القطع المتوفرة للتبادل هلقيت")
+    age_filter = st.selectbox("اختار عمر طفلك لرؤية المتوفر له:", ["حديث ولادة - 6 أشهر", "سنة إلى سنتين", "3 إلى 5 سنوات", "6 إلى 10 سنوات"])
     
-    st.markdown('<div class="product-box">', unsafe_allow_html=True)
-    st.image(polo_image_url, caption="تيشرت بولو راقي - كاجوال مميز", use_container_width=True)
-    st.subheader("تيشرت بولو كحلي - Originals")
-    st.write("**المواصفات:** قطن ناعم ممتاز، مريح جداً ومناسب للكاجوال والطلعات.")
-    st.write("💰 **السعر:** <span style='color: #0056b3; font-size: 20px; font-weight: bold;'>25 شيكل فقط</span>", unsafe_allow_html=True)
+    st.info(f"يتم الآن عرض القطع المتوفرة لعمر: {age_filter}")
     
-    polo_whatsapp_url = f"https://wa.me{whatsapp_number}?text=مرحباً%20وسيم،%20أريد%20طلب%20تيشرت%20البولو%20الكحلي%20المعروض%20بـ%2025%20شيكل"
-    st.markdown(f'<a href="{polo_whatsapp_url}" target="_blank" class="whatsapp-btn">🛍️ اطلب القطعة الآن عبر الواتساب</a>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# القسم الثالث: رفع طلب جديد
-elif section == "رفع طلب جديد":
-    st.title("📦 اطلب منتجك المخصص")
-    st.write("هل لديك تصميم معين أو صورة لملابس تريد تفصيلها أو طلبها؟ ارفعها لنا هنا:")
-    
-    customer_name = st.text_input("اسمك الكريم:")
-    customer_phone = st.text_input("رقم الهاتف للتواصل:")
-    uploaded_file = st.file_uploader("اختر صورة الملابس أو التصميم:", type=["jpg", "png", "jpeg"])
-    
-    if uploaded_file is not None:
-        st.image(uploaded_file, caption="الصورة التي قمت برفعها", width=300)
+    # مثال لقطعة متوفرة
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        st.markdown("<font size='6'>🧥</font>", unsafe_allow_html=True) # أيقونة تعبيرية كبديل مستقر للصورة
+    with col2:
+        st.subheader("جاكيت شتوي ناعم مبطن")
+        st.write("• **الحالة:** ممتازة جداً (شبه جديد)")
+        st.write("• **المقاس الحالي للقطعة:** يناسب عمر 4 سنوات")
         
-    if st.button("إرسال الطلب الآن"):
-        if customer_name and customer_phone:
-            st.balloons()
-            st.success(f"شكراً لك يا {customer_name}! تم استلام طلبك بنجاح، وسنتواصل معك قريباً.")
-        else:
-            st.error("الرجاء إدخال الاسم ورقم الهاتف أولاً.")
+        chat_url = f"https://wa.me{whatsapp_number}?text=مرحباً%20وسيم،%20أريد%20حجز%20الجاكيت%20المبطن%20عمر%204%20سنوات%20للمقايضة"
+        st.markdown(f'<a href="{chat_url}" target="_blank" class="whatsapp-btn">🛍️ احجز القطعة هلقيت وتواصل واتساب</a>', unsafe_allow_html=True)
 
-# القسم الرابع: تواصل معنا
-elif section == "تواصل معنا":
-    st.title("📞 معلومات التواصل")
-    st.write("يسعدنا دائماً تواصلكم معنا للاستفسارات والشكاوي:")
+# القسم الثالث: رفع الملابس للتبادل
+elif section == "🔄 اعرض ملابس للتبادل":
+    st.title("📸 ارفع الملابس التي تريد تبديلها")
+    st.write("ساعد غيرك واستفد! ارفع تفاصيل الملابس النظيفة هلقيت:")
     
-    st.markdown(f'<a href="{whatsapp_url}" target="_blank" class="whatsapp-btn" style="font-size: 18px; padding: 15px;">💬 اضغط هنا لمراسلتنا عبر الواتساب واطلب فوراً</a>', unsafe_allow_html=True)
+    parent_name = st.text_input("اسمك الكريم:")
+    item_age = st.selectbox("المقاس الحالي للملابس (تناسب عمر كام؟):", ["0-6 أشهر", "1-2 سنة", "3-5 سنوات", "6-10 سنوات"])
+    photo = st.file_uploader("صور القطعة بشكل واضح وارفعها هنا:", type=["jpg", "png", "jpeg"])
     
-    st.write("📧 البريد الإلكتروني: support@waseem-store.com")
-    st.write("📍 الموقع: العالم العربي")
+    if st.button("تأكيد ونشر في البنك"):
+        if parent_name and photo:
+            st.balloons()
+            st.success(f"كفو يا {parent_name}! تم رفع القطعة بنجاح، وجاري فحصها لتظهر في قسم المتوفر. تفضل بزيارة المحل لإتمام التبادل.")
+        else:
+            st.error("الرجاء كتابة الاسم ورفع صورة القطعة أولاً.")
     
