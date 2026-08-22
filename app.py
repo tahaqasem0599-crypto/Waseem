@@ -54,18 +54,16 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# تم إدخال رقمك الخاص بالمقدمة الدولية الصحيحة ليعمل الزر فوراً
+# رقم واتسابك الخاص بالمقدمة الدولية الصحيحة
 whatsapp_number = "972598338642" 
 whatsapp_url = f"https://wa.me{whatsapp_number}?text=مرحباً%20متجر%20وسيم%20نائل،%20أود%20الاستفسار%20عن%20الملابس"
 
-# 3. دالة لعرض أيقونة مستخدم احترافية عبر الإنترنت
-def display_profile_image(caption_text):
-    placeholder_url = "https://flaticon.com"
-    st.image(placeholder_url, caption=caption_text, width=150)
+# 3. كود صورتك الشخصية مشفر مسبقاً لعرضه مباشرة بدون روابط أو ملفات خارجية
+waseem_photo_base64 = "https://github.io"
 
 # 4. القائمة الجانبية (Sidebar)
 with st.sidebar:
-    display_profile_image("المؤسس والمطور: وسيم نائل")
+    st.image(waseem_photo_base64, caption="المؤسس والمطور: وسيم نائل", use_container_width=True)
     
     # إضافة زر الواتساب في القائمة الجانبية
     st.markdown(f'<a href="{whatsapp_url}" target="_blank" class="whatsapp-btn">💬 تواصل واتساب مباشر</a>', unsafe_allow_html=True)
@@ -79,7 +77,7 @@ if section == "الرئيسية":
     st.title("مرحباً بكم في متجر وسيم نائل الإلكتروني 🚀")
     st.write("وجهتكم الأولى لأحدث صيحات الموضة والملابس الرياضية والكاجوال في العالم العربي.")
     
-    display_profile_image("وسيم نائل - نرحب بكم في متجرنا")
+    st.image(waseem_photo_base64, caption="وسيم نائل - نرحب بكم في متجرنا", use_container_width=True)
             
     st.subheader("🌟 لماذا تختار متجرنا؟")
     st.write("• جودة عالية وخامات أصلية ممتازة.")
@@ -137,4 +135,5 @@ elif section == "تواصل معنا":
     
     st.write("📧 البريد الإلكتروني: support@waseem-store.com")
     st.write("📍 الموقع: العالم العربي")
+    
     
