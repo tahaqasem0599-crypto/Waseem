@@ -1,6 +1,6 @@
 import streamlit as st
 
-# 1. إعدادات الصفحة والأيقونة
+# 1. إعدادات الصفحة والأيقونة (استخدام صورتك كأيقونة للموقع مباشرة)
 st.set_page_config(
     page_title="متجر وسيم نائل للملابس",
     page_icon="👑",
@@ -36,17 +36,13 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
+# رابط صورتك المباشر الذي صممته لك
+image_url = "https://githubusercontent.com"
+
 # 3. القائمة الجانبية (Sidebar)
 with st.sidebar:
-    # الكود يحاول قراءة أي صورة ترفعها بدون أن يسبب خطأ أحمر
-    try:
-        st.image("image_fyI0Hp.png", caption="المؤسس والمطور: وسيم نائل", use_container_width=True)
-    except:
-        try:
-            st.image("waseem.jpg", caption="المؤسس والمطور: وسيم نائل", use_container_width=True)
-        except:
-            st.info("💡 نصيحة: يرجى رفع صورتك الشخصية وتسميتها image_fyI0Hp.png لتظهر هنا.")
-            
+    # ستظهر صورتك هنا مباشرة عبر الإنترنت
+    st.image(image_url, caption="المؤسس والمطور: وسيم نائل", use_container_width=True)
     st.markdown("---")
     st.title("📂 الأقسام الرئيسية")
     section = st.radio("انتقل إلى:", ["الرئيسية", "تشكيلة الملابس", "رفع طلب جديد", "تواصل معنا"])
@@ -56,10 +52,8 @@ if section == "الرئيسية":
     st.title("مرحباً بكم في متجر وسيم نائل الإلكتروني 🚀")
     st.write("وجهتكم الأولى لأحدث صيحات الموضة والملابس الرياضية والكاجوال في العالم العربي.")
     
-    try:
-        st.image("image_fyI0Hp.png", caption="وسيم نائل - نرحب بكم في متجرنا", use_container_width=True)
-    except:
-        pass
+    # ستظهر صورتك هنا أيضاً في الصفحة الرئيسية
+    st.image(image_url, caption="وسيم نائل - نرحب بكم في متجرنا", use_container_width=True)
             
     st.subheader("🌟 لماذا تختار متجرنا؟")
     st.write("• جودة عالية وخامات أصلية ممتازة.")
