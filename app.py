@@ -3,18 +3,27 @@ import streamlit as st
 # إعدادات المنصة الاحترافية الشاملة لوسيم نائل
 st.set_page_config(page_title="منصة وسيم نائل الشاملة والتجارة الرقمية", page_icon="💎", layout="wide")
 
-# تصميم الهيدر العلوي الفخم
-st.markdown("<h1 style='text-align: center; color: #1E3A8A;'>💎 منصة وسيم نائل الرقمية والتجارية الشاملة</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; font-size: 18px; color: #4B5563;'>بوابتك الذكية للتجارة الإلكترونية، الأدوات البرمجية، والخدمات الإعلانية</p>", unsafe_allow_html=True)
+# تقسيم الصفحة لعرض الصورة الشخصية بجانب العنوان لبناء الثقة فوراً
+col_header1, col_header2 = st.columns([1, 4])
+
+with col_header1:
+    # دمج صورتك الشخصية الاحترافية مباشرة في الواجهة
+    st.image("https://githubusercontent.com", width=160)
+
+with col_header2:
+    st.markdown("<h1 style='color: #1E3A8A; margin-top: 10px;'>💎 منصة وسيم نائل الرقمية والتجارية الشاملة</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 18px; color: #4B5563;'>بوابتك الذكية للتجارة الإلكترونية، الأدوات البرمجية، والخدمات الإعلانية</p>", unsafe_allow_html=True)
+
 st.divider()
 
-# رابط الواتساب المباشر لوسيم نائل (مربوط برقمك مباشرة)
+# رابط الواتساب المباشر لوسيم نائل
 whatsapp_base_url = "https://wa.me"
 
-# تقسيم الشاشة إلى تبويبات احترافية لتشمل كل شيء بدون استثناء
-tab_store, tab_services, tab_ai, tab_finance = st.tabs([
+# تقسيم الشاشة إلى تبويبات احترافية
+tab_store, tab_services, tab_payment, tab_ai, tab_finance = st.tabs([
     "🛍️ متجر الملابس الفاخرة", 
-    "💼 الخدمات الرقمية والإعلانات", 
+    "💼 الخدمات الرقمية والإعلانات",
+    "💳 الدفع عبر بنك فلسطين",
     "🤖 أدوات الذكاء الاصطناعي", 
     "📊 الحاسبة التجارية والأرباح"
 ])
@@ -22,7 +31,7 @@ tab_store, tab_services, tab_ai, tab_finance = st.tabs([
 # 1️⃣ التبويب الأول: متجر الملابس والتجارة
 with tab_store:
     st.header("👕 أحدث تشكيلات الملابس والأزياء الفاخرة")
-    st.write("تصفح واطلب قطعتك المفضلة الآن، التوصيل متوفر لجميع المناطق.")
+    st.write("تصفح واطلب قطعتك المفضلة الآن، الدفع متوفر عبر تطبيق بنك فلسطين أو كاش عند الاستلام.")
     
     col_img1, col_img2 = st.columns(2)
     with col_img1:
@@ -61,7 +70,24 @@ with tab_services:
         msg_srv3 = "مرحباً أستاذ وسيم، أريد طلب خدمة برمجة وإنشاء موقع إلكتروني"
         st.markdown(f'<a href="{whatsapp_base_url}{msg_srv3}" target="_blank"><button style="width:100%; background-color:#1E3A8A; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">💬 احجز الخدمة الآن</button></a>', unsafe_allow_html=True)
 
-# 3️⃣ التبويب الثالث: أدوات الذكاء الاصطناعي (SaaS)
+# 3️⃣ التبويب الثالث: طرق الدفع البنكية
+with tab_payment:
+    st.header("💳 طرق الدفع المتاحة وتحويل الأموال")
+    st.write("لتسهيل معاملاتكم، يمكنك تحويل قيمة البضاعة أو الخدمات عبر تطبيق بنك فلسطين مباشرة:")
+    
+    st.success("🏦 **التحويل البنكي أو عبر تطبيق بنك فلسطين (Bank of Palestine)**")
+    st.info("💡 يمكنك إرسال الحوالة إلى حسابنا مباشرة، أو الدفع السريع باستخدام ميزة **(بالمحفظة / PalPay)** من داخل تطبيقك البنكي.")
+    
+    st.markdown("""
+    * **اسم صاحب الحساب:** وسيم نائل
+    * **رقم الحساب أو المحفظة:** (اكتب رقم حسابك هنا عند تعديل الكود)
+    * **ملاحظة:** يرجى تصوير شاشة إشعار التحويل الناجح من التطبيق وإرسالها عبر الواتساب لتأكيد طلبك فوراً.
+    """)
+    
+    msg_pay = "مرحباً أستاذ وسيم، لقد قمت بتحويل المبلغ عبر تطبيق بنك فلسطين وأريد تأكيد الطلب"
+    st.markdown(f'<a href="{whatsapp_base_url}{msg_pay}" target="_blank"><button style="background-color:#A16207; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">📸 أرسل إشعار الدفع عبر الواتساب</button></a>', unsafe_allow_html=True)
+
+# 4️⃣ التبويب الرابع: أدوات الذكاء الاصطناعي
 with tab_ai:
     st.header("🤖 أدوات الذكاء الاصطناعي الذكية لرواد الأعمال")
     st.write("أدوات برمجية ذكية وحصرية لمساعدتك في كتابة المحتوى الإعلاني والتسويقي فوراً.")
@@ -82,7 +108,7 @@ with tab_ai:
             if niche:
                 st.info(f"💡 **أفكار لزيادة مبيعات {niche}:**\n1. اعمل عرض 'اشتري قطعة واصل على الثانية بنصف السعر'.\n2. أطلق إعلان ممول مستهدفاً لقطتك الشخصية الفخمة لبناء الثقة.\n3. قدم كود خصم خاص لأول 50 مشتري يتواصلون معك عبر الواتساب.")
 
-# 4️⃣ التبويب الرابع: الحاسبة المالية والتجارية
+# 5️⃣ التبويب الخامس: الحاسبة المالية والتجارية
 with tab_finance:
     st.header("📊 الحاسبة المالية الذكية لحساب صافي الأرباح والـ ROI")
     st.write("ادخل الأرقام الخاصة بتجارتك أو حملتك الإعلانية لحساب صافي ربحك بدقة بالشيكل.")
@@ -108,4 +134,3 @@ with tab_finance:
 
 st.divider()
 st.markdown("<p style='text-align: center; color: #9CA3AF;'>© 2026 جميع الحقوق محفوظة ومطورة بالكامل بواسطة المستشار وسيم نائل</p>", unsafe_allow_html=True)
-    
