@@ -1,5 +1,4 @@
 import streamlit as st
-import pandas as pd
 
 # إعدادات شاشة اللعبة والهوية البصرية الرسمية
 st.set_page_config(page_title="غزة الحربية - النظام الشامل", page_icon="⚔️", layout="wide")
@@ -43,7 +42,6 @@ if not st.session_state.logged_in:
     st.title("💥 لعبة غزة الحربية (Gaza Warfare)")
     st.subheader("🔒 النظام المركزي لإدارة السيرفرات العالمية")
     
-    # عرض صورة قتالية حماسية لمقاتل ماسك سلاح في صفحة الدخول
     st.image("https://unsplash.com", 
              caption="⚔️ استعد لدخول ساحة المعركة الشرسة", use_container_width=True)
     
@@ -59,7 +57,7 @@ if not st.session_state.logged_in:
 
 # 2. لوحة التحكم الشاملة والمثيرة بعد تسجيل الدخول بنجاح
 else:
-    col_header, col_logout = st.columns([4, 1])
+    col_header, col_logout = st.columns()
     with col_header:
         st.title("⚔️ لوحة تحكم لعبة غزة الحربية (Gaza Warfare)")
         st.subheader(f"👑 رئيس السيرفرات والمطور الرئيسي: المطور وسيم")
@@ -70,7 +68,6 @@ else:
             
     st.write("---")
 
-    # تفعيل الأقسام الشاملة بما فيها الشات والصور
     tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
         "🗺️ الخرائط والزون", 
         "💎 شحن الـ Coins", 
@@ -87,11 +84,11 @@ else:
         st.image("https://unsplash.com", caption="🛩️ منطقة العمليات الحربية والإنزال الجوي", use_container_width=True)
         col1, col2 = st.columns(2)
         with col1:
-            map_name = st.selectbox("🗺️ اختر خريطة المواجهة الحالية:", ["ساحة الصمود (Main Map)", "المدينة المدمرة (Desert)", "موقع الإنزال (Custom)"])
-            game_mode = st.radio("👥 نمط الفرق في السيرفر:", ["Squad (فريق 4 لاعبين)", "Duo (ثنائي)", "Solo (نمط الفدائي الفردي)"])
+            map_name = st.selectbox("🗺️ اختر خريطة المواجهة الحالية:", ["ساحة الصمود", "المدينة المدمرة", "موقع الإنزال"])
+            game_mode = st.radio("👥 نمط الفرق في السيرفر:", ["Squad (فريق)", "Duo (ثنائي)", "Solo (فردي)"])
         with col2:
-            air_drop_rate = st.slider("✈️ معدل نزول صناديق الإمداد (Air Drops):", 1, 5, 3)
-            zone_speed = st.slider("⭕ سرعة تضييق دائرة الخطر (Danger Zone):", 1.0, 3.0, 1.8)
+            air_drop_rate = st.slider("✈️ معدل نزول صناديق الإمداد:", 1, 5, 3)
+            zone_speed = st.slider("⭕ سرعة تضييق دائرة الخطر:", 1.0, 3.0, 1.8)
             
         if st.button("💾 حفظ وتطبيق إعدادات الخريطة فوراً"):
             st.success(f"✔️ تم تحديث خريطة السيرفر بنجاح! الخريطة النشطة الآن: {map_name}.")
@@ -108,15 +105,15 @@ else:
             else:
                 st.warning("⚠️ يرجى إدخال معرف اللاعب (ID) أولاً.")
 
-    # القسم الثالث: شات المطورين مدمج مع نظام تشغيل الصوت والإنذار
+    # القسم الثالث: شات المطورين
     with tab3:
         st.subheader("💬 صندوق دردشة طاقم إدارة لعبة غزة الحربية")
-        st.write("تبادل التعليمات والرسائل الفورية مع المشرفين الآخرين (يصدر صوت تنبيه عند إرسال رسالة):")
+        st.write("تبادل الرسائل الفورية مع المشرفين (يصدر صوت تنبيه عند الإرسال):")
         
         for chat in st.session_state.chat_history:
             st.markdown(f"<div class='chat-box'><b>👤 {chat['user']}:</b> {chat['msg']}</div>", unsafe_allow_escaping=True)
             
-        new_msg = st.text_input("🖊️ اكتب رسالتك البرمجية هنا:", placeholder="مثال: تم رصد زيادة في معدل استجابة السيرفر...")
+        new_msg = st.text_input("🖊️ اكتب رسالتك البرمجية هنا:")
         if st.button("📨 إرسال وبث الرسالة عبر السيرفر"):
             if new_msg:
                 st.session_state.chat_history.append({"user": "المطور وسيم", "msg": new_msg})
@@ -126,43 +123,29 @@ else:
     # القسم الرابع: مكافحة الهكر
     with tab4:
         st.subheader("🛡️ جدار حماية غزة الحربية (Anti-Cheat)")
-        st.error("🚨 رادار الحماية: تم رصد لاعب يستخدم ثغرة الطيران وكشف الأماكن في الجيم الحالي!")
-        
+        st.error("🚨 رادار الحماية: تم رصد لاعب يستخدم ثغرة الطيران في الجيم الحالي!")
         suspect_id = st.text_input("🚫 أدخل ID اللاعب المخالف لتطبيق العقوبة:")
-        ban_duration = st.selectbox("⏳ نوع العقوبة والحظر للسيرفر:", ["حظر مؤقت لمدة 24 ساعة", "حظر لمدة 7 أيام", "حظر أبدي وجلب عنوان الجهاز (حظر نهائي)"])
-        
+        ban_duration = st.selectbox("⏳ نوع العقوبة والحظر للسيرفر:", ["حظر مؤقت لمدة 24 ساعة", "حظر لمدة 7 أيام", "حظر أبدي وجلب عنوان الجهاز"])
         if st.button("🔨 طرد وبند اللاعب المخالف"):
-            st.error(f"🔒 تم طرد الحساب {suspect_id} بنجاح من اللعبة وحظر الـ IP بواسطة المطور وسيم.")
+            st.error(f"🔒 تم طرد الحساب {suspect_id} بنجاح وحظر الـ IP بواسطة المطور وسيم.")
 
-    # القسم الخامس: قائمة الصدارة واللاعبين (Leaderboard) - تم الإصلاح هنا بالكامل
+    # القسم الخامس: قائمة الصدارة النصية الآمنة (تم إلغاء الجدول المسبب للمشاكل)
     with tab5:
-        st.subheader("🏆 قائمة أفضل 5 لاعبين في لعبة غزة الحربية")
-        st.write("بيانات لوحة الصدارة الحالية والمحدثة بشكل صحيح وآمن:")
-        
-        leaderboard_data = {
-            "الترتيب":,
-            "اسم اللاعب (Username)": ["الصقر_الغزاوي", "waseem_hero", "المدمر_007", "كلاشينكوف", "الأسد_الرقمي"],
-            "معرف اللاعب (ID)": ["552144", "100234", "883411", "994125", "332145"],
-            "عدد القتلى (Kills)":,
-            "المستوى (Level)": [75, 74, 68, 62, 59]
-        }
-        df = pd.DataFrame(leaderboard_data)
-        st.dataframe(df, use_container_width=True, hide_index=True)
+        st.subheader("🏆 قائمة أفضل اللاعبين في لعبة غزة الحربية")
+        st.info("🥇 المركز الأول: الصقر_الغزاوي (ID: 552144) - عدد القتلى: 1420 كِل")
+        st.info("🥈 المركز الثاني: waseem_hero (ID: 100234) - عدد القتلى: 1390 كِل")
+        st.info("🥉 المركز الثالث: المدمر_007 (ID: 883411) - عدد القتلى: 1100 كِل")
 
     # القسم السادس: سكنات وتصميم الأسلحة
     with tab6:
         st.subheader("🔫 مستودع سكنات وتطوير الأسلحة")
         st.image("https://unsplash.com", caption="🎯 تعديل وتخصيص التمويهات العسكرية الحصرية لأسلحتك", use_container_width=True)
-        
         weapon_type = st.selectbox("🎯 اختر السلاح المراد تعديله:", ["M416", "AKM", "AWM", "M24", "Scarl-L"])
-        skin_name = st.text_input("🎨 اسم السكن الجديد:", placeholder="مثال: سكن رمال غزة")
+        skin_name = st.text_input("🎨 اسم السكن الجديد:")
         uploaded_skin = st.file_uploader("📂 ارفع صورة أو ملف خامات السكن:", type=["png", "jpg", "jpeg"])
-        
         if st.button("🎨 رفع وتفعيل السكن في اللعبة"):
             if uploaded_skin and skin_name:
                 st.success(f"🔥 تم بنجاح رفع السكن '{skin_name}' وتطبيقه على سلاح {weapon_type}!")
-            else:
-                st.warning("⚠️ يرجى إدخال اسم السكن ورفع ملف الصورة أولاً.")
 
     # القسم السابع: الأرباح والمالية
     with tab7:
@@ -175,4 +158,4 @@ else:
 
 st.write("---")
 st.caption("حقوق التطوير والبرمجة بالكامل محفوظة للمطور وسيم © 2026 | Gaza Warfare Project")
-         
+    
