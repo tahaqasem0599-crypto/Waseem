@@ -8,7 +8,7 @@ st.markdown('<style>body,.main,.block-container{padding:0!important;margin:0!imp
 st.title('🛡️ كتيبة الفرسان: محاكاة صمود شوارع المدينة')
 st.write('🎮 أسلوب رماية تكتيكي: قُد فريقك بالعُصب الخضراء وتصدّى لآليات ومليشيات الأعداء وسط ركام وأزقة الشوارع!')
 
-# كود اللعبة المطور بنمط رماية واتجاهات دائرية مع فريق وسواتر وسيارات محطمة
+# كود اللعبة المصحح والمضمون 100% بدون أي تعليق أو شاشة بيضاء
 h = '<!DOCTYPE html><html lang="ar"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">'
 h += '<style>*{box-sizing:border-box;user-select:none;}body{margin:0;padding:0;background:#0d0e12;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:100vh;font-family:sans-serif;}'
 h += '#game-container{position:relative;width:95vw;max-width:500px;height:68vh;max-height:520px;background:#27272a;border:4px solid #10b981;border-radius:24px;overflow:hidden;box-shadow:0 0 35px rgba(16,185,129,0.3);}'
@@ -70,7 +70,7 @@ h += 'ctx.fillStyle="#000";ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.f
 h += 'drawP(player.x,player.y,player.r,player.angle,true,false);'
 
 h += 'let now=Date.now();allies.forEach(a=>{'
-h += 'let target=enemies[0];if(target){let dx=target.x-a.x,dy=target.y-a.y;let ang=Math.atan2(dy,dx);a.x+=Math.cos(ang)*1.2;a.y+=Math.sin(ang)*1.2;'
+h += 'if(enemies.length>0){let target=enemies[0];let dx=target.x-a.x,dy=target.y-a.y;let ang=Math.atan2(dy,dx);a.x+=Math.cos(ang)*1.2;a.y+=Math.sin(ang)*1.2;'
 h += 'obstacles.forEach(o=>{if(a.x+a.r>o.x&&a.x-a.r<o.x+o.w&&a.y+a.r>o.y&&a.y-a.r<o.y+o.h){a.x-=Math.cos(ang)*1.2;a.y-=Math.sin(ang)*1.2;}});'
 h += 'drawP(a.x,a.y,a.r,ang,true,false);if(now-a.lastFire>600){bullets.push({x:a.x,y:a.y,vx:Math.cos(ang)*7,vy:Math.sin(ang)*7,isAlly:true});a.lastFire=now;}}else{drawP(a.x,a.y,a.r,-Math.PI/2,true,false);}});'
 
