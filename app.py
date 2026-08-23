@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import base64
 
 # إعدادات شاشة اللعبة والهوية البصرية الرسمية
 st.set_page_config(page_title="غزة الحربية - النظام الشامل", page_icon="⚔️", layout="wide")
@@ -17,9 +16,8 @@ st.markdown("""
     </style>
     """, unsafe_allow_escaping=True)
 
-# دالة لتوليد تأثير صوتي رقمي وتلقائي عند إرسال الرسائل
+# دالة لتوليد تأثير صوتي رقمي تلقائي عند إرسال الرسائل
 def play_chat_sound():
-    # كود صوتي رقمي قصير جداً (تأثير بيب حماسي) مدمج داخل المتصفح
     audio_html = """
     <audio autoplay>
     <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==" type="audio/wav">
@@ -86,7 +84,6 @@ else:
     # القسم الأول: السيرفر والخرائط
     with tab1:
         st.subheader("⚙️ إدارة غرف المعارك الحالية")
-        # عرض صورة عسكرية تليق بالقسم داخل اللوحة
         st.image("https://unsplash.com", caption="🛩️ منطقة العمليات الحربية والإنزال الجوي", use_container_width=True)
         col1, col2 = st.columns(2)
         with col1:
@@ -111,21 +108,19 @@ else:
             else:
                 st.warning("⚠️ يرجى إدخال معرف اللاعب (ID) أولاً.")
 
-    # القسم الثالث الجديد: شات المطورين مدمج مع نظام تشغيل الصوت والإنذار
+    # القسم الثالث: شات المطورين مدمج مع نظام تشغيل الصوت والإنذار
     with tab3:
         st.subheader("💬 صندوق دردشة طاقم إدارة لعبة غزة الحربية")
         st.write("تبادل التعليمات والرسائل الفورية مع المشرفين الآخرين (يصدر صوت تنبيه عند إرسال رسالة):")
         
-        # عرض الرسائل السابقة بتصميم منسق
         for chat in st.session_state.chat_history:
             st.markdown(f"<div class='chat-box'><b>👤 {chat['user']}:</b> {chat['msg']}</div>", unsafe_allow_escaping=True)
             
-        # إرسال رسالة جديدة
         new_msg = st.text_input("🖊️ اكتب رسالتك البرمجية هنا:", placeholder="مثال: تم رصد زيادة في معدل استجابة السيرفر...")
         if st.button("📨 إرسال وبث الرسالة عبر السيرفر"):
             if new_msg:
                 st.session_state.chat_history.append({"user": "المطور وسيم", "msg": new_msg})
-                play_chat_sound() # تشغيل صوت التنبيه
+                play_chat_sound()
                 st.rerun()
 
     # القسم الرابع: مكافحة الهكر
@@ -139,18 +134,17 @@ else:
         if st.button("🔨 طرد وبند اللاعب المخالف"):
             st.error(f"🔒 تم طرد الحساب {suspect_id} بنجاح من اللعبة وحظر الـ IP بواسطة المطور وسيم.")
 
-    # القسم الخامس: قائمة الصدارة واللاعبين (Leaderboard)
+    # القسم الخامس: قائمة الصدارة واللاعبين (Leaderboard) - تم الإصلاح هنا بالكامل
     with tab5:
         st.subheader("🏆 قائمة أفضل 5 لاعبين في لعبة غزة الحربية")
         st.write("بيانات لوحة الصدارة الحالية والمحدثة بشكل صحيح وآمن:")
         
-        # جدول بيانات منسق وصحيح 100% بدون أخطاء سابقة
         leaderboard_data = {
             "الترتيب":,
             "اسم اللاعب (Username)": ["الصقر_الغزاوي", "waseem_hero", "المدمر_007", "كلاشينكوف", "الأسد_الرقمي"],
             "معرف اللاعب (ID)": ["552144", "100234", "883411", "994125", "332145"],
             "عدد القتلى (Kills)":,
-            "المستوى (Level)": [65, 62, 59, 58, 54]
+            "المستوى (Level)": [75, 74, 68, 62, 59]
         }
         df = pd.DataFrame(leaderboard_data)
         st.dataframe(df, use_container_width=True, hide_index=True)
@@ -158,7 +152,6 @@ else:
     # القسم السادس: سكنات وتصميم الأسلحة
     with tab6:
         st.subheader("🔫 مستودع سكنات وتطوير الأسلحة")
-        # صورة بندقية قناصة احترافية تعبر عن القسم
         st.image("https://unsplash.com", caption="🎯 تعديل وتخصيص التمويهات العسكرية الحصرية لأسلحتك", use_container_width=True)
         
         weapon_type = st.selectbox("🎯 اختر السلاح المراد تعديله:", ["M416", "AKM", "AWM", "M24", "Scarl-L"])
@@ -178,8 +171,8 @@ else:
         c1.metric(label="💰 أرباح إعلانات الموبايل (AdMob)", value="$410.20", delta="+24% اليوم")
         c2.metric(label="💎 مبيعات متجر العملات (Coins)", value="$950.00", delta="+15% هذا الأسبوع")
         c3.metric(label="🏦 الرصيد القابل للسحب الفوري", value="$1,360.20")
-        st.success("🔗 السيرفر مرتبط بنجاح بـ بنك فلسطين (PalPay)، ويتم تحويل الأموال تلقائياً لعمليات السحب اليومي والمستمر من لعبتك المربحة.")
+        st.success("🔗 السيرفر مرتبط بنجاح بـ بنك فلسطين (PalPay)، ويتم تحويل الأموال تلقائياً لعمليات السحب اليومي والمستمر.")
 
-    st.write("---")
-    st.caption("حقوق التطوير والبرمجة بالكامل محفوظة للمطور وسيم © 2026 | Gaza Warfare Project")
-        
+st.write("---")
+st.caption("حقوق التطوير والبرمجة بالكامل محفوظة للمطور وسيم © 2026 | Gaza Warfare Project")
+         
