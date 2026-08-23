@@ -37,7 +37,8 @@ if not st.session_state.logged_in:
 
 # 2. لوحة التحكم الشاملة والمثيرة بعد تسجيل الدخول بنجاح
 else:
-    col_header, col_logout = st.columns()
+    # تم إصلاح السطر المسبب للخطأ هنا بالكامل
+    col_header, col_logout = st.columns([4, 1])
     with col_header:
         st.title("⚔️ لوحة تحكم لعبة غزة الحربية (Gaza Warfare)")
         st.subheader(f"👑 رئيس السيرفرات والمطور الرئيسي: المطور وسيم")
@@ -68,7 +69,6 @@ else:
                 st.info("✈️ الطائرة تحلق الآن فوق ساحة الصمود! تم فتح باب الإنزال المظلي.")
                 time.sleep(1)
                 
-                # توليد أحداث عشوائية تحاكي ببجي تماماً
                 weapons = ["M416", "AKM", "AWM", "Kar98"]
                 players = ["الصقر_الغزاوي", "المدمر_007", "كلاشينكوف", "الأسد_الرقمي", "لاعب_مجهول"]
                 
@@ -140,4 +140,4 @@ else:
 
 st.write("---")
 st.caption("حقوق التطوير والبرمجة بالكامل محفوظة للمطور وسيم © 2026 | Gaza Warfare Project")
-    
+        
