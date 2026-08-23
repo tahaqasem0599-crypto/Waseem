@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import random
 import time
 
@@ -35,10 +36,9 @@ if not st.session_state.logged_in:
         else:
             st.error("❌ خطأ أمني: بيانات الدخول غير صحيحة!")
 
-# 2. لوحة التحكم الشاملة والمثيرة بعد تسجيل الدخول بنجاح
+# 2. لوحة التحكم واللعب الشاملة بعد تسجيل الدخول بنجاح
 else:
-    # تم إصلاح السطر المسبب للخطأ هنا بالكامل
-    col_header, col_logout = st.columns([4, 1])
+    col_header, col_logout = st.columns()
     with col_header:
         st.title("⚔️ لوحة تحكم لعبة غزة الحربية (Gaza Warfare)")
         st.subheader(f"👑 رئيس السيرفرات والمطور الرئيسي: المطور وسيم")
@@ -49,95 +49,179 @@ else:
             
     st.write("---")
 
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-        "🎮 تجربة اللعب (Simulator)",
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+        "🎮 العب الآن (Play Game)",
+        "🕹️ محاكي السيرفر",
         "🗺️ الخرائط والزون", 
         "💎 شحن الـ Coins", 
+        "🏆 رويال باس (Premium)",
         "💬 شات المطورين",
-        "🛡️ مكافحة الهاكرز", 
-        "💰 الأرباح والمالية"
+        "🛡️ مكافحة الهاكرز"
     ])
 
-    # قسم تجربة اللعب المباشر من الهاتف
+    # قسم اللعب المباشر - كود اللعبة المدمج يعمل باللمس على الموبايل
     with tab1:
-        st.subheader("🕹️ محاكي قتال غزة الحربية الافتراضي")
-        st.write("اضغط على الزر أدناه لبدء جيم تجريبي ومراقبة أحداث القتال في السيرفر:")
+        st.subheader("🎯 ساحة القتال المباشرة - لعبة غزة الحربية")
+        st.write("استخدم أزرار التحكم باللمس أسفل الشاشة لتحريك اللاعب وإطلاق النار وتدمير الأهداف القادمة:")
         
-        if st.button("🔥 ابدأ معركة تجريبية (Start Match)"):
-            with st.spinner("جاري جمع 100 لاعب وتجهيز الطائرة..."):
-                time.sleep(1.5)
-                st.info("✈️ الطائرة تحلق الآن فوق ساحة الصمود! تم فتح باب الإنزال المظلي.")
-                time.sleep(1)
-                
-                weapons = ["M416", "AKM", "AWM", "Kar98"]
-                players = ["الصقر_الغزاوي", "المدمر_007", "كلاشينكوف", "الأسد_الرقمي", "لاعب_مجهول"]
-                
-                p1 = random.choice(players)
-                w1 = random.choice(weapons)
-                
-                st.success(f"☠️ شريط القتلى: {p1} قضى على لاعب آخر باستخدام سلاح {w1}!")
-                st.warning("⭕ تنبيه السيرفر: الزون بدأ يضيق الآن! تحرك إلى المنطقة الآمنة.")
-                st.balloons()
+        # كود اللعبة بلغة HTML5 و JavaScript مصمم خصيصاً للشاشات والموبايل
+        game_html = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta name="viewport" content="width=device-width, initial-scale=initial-scale=1.0, user-scalable=no">
+            <style>
+                body { margin: 0; background: #111; color: white; font-family: sans-serif; text-align: center; touch-action: none; }
+                canvas { background: #222; display: block; margin: 10px auto; border: 2px solid #FFCC00; max-width: 100%; border-radius: 8px; }
+                .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 320px; margin: 15px auto; }
+                button { background: #FFCC00; color: #111; font-weight: bold; border: none; padding: 15px; border-radius: 8px; font-size: 18px; active { background: #E6B800; } }
+                .fire-btn { grid-column: span 3; background: #FF3333; color: white; }
+                #score-board { font-size: 20px; color: #FFCC00; font-weight: bold; margin-top: 5px; }
+            </style>
+        </head>
+        <body>
+            <div id="score-board">🎯 الكيلز (Kills): <span id="score">0</span></div>
+            <canvas id="gameCanvas" width="400" height="300"></canvas>
+            
+            <div class="controls">
+                <button id="btnLeft">⬅️ يسار</button>
+                <button id="btnJump">🦘 قفز</button>
+                <button id="btnRight">يمين ➡️</button>
+                <button id="btnFire" class="fire-btn">🔥 إطلاق نار (FIRE)</button>
+            </div>
 
-    # القسم الثاني: السيرفر والخرائط
+            <script>
+                const canvas = document.getElementById("gameCanvas");
+                const ctx = canvas.getContext("2d");
+
+                let player = { x: 50, y: 230, width: 25, height: 40, vy: 0, jumping: false };
+                let bullets = [];
+                let enemies = [];
+                let score = 0;
+
+                // أزرار اللمس للموبايل
+                document.getElementById("btnLeft").addEventListener("touchstart", () => player.x -= 20);
+                document.getElementById("btnRight").addEventListener("touchstart", () => player.x += 20);
+                document.getElementById("btnJump").addEventListener("touchstart", () => {
+                    if(!player.jumping) { player.vy = -12; player.jumping = true; }
+                });
+                document.getElementById("btnFire").addEventListener("touchstart", () => {
+                    bullets.push({ x: player.x + 25, y: player.y + 15, speed: 7 });
+                });
+
+                // دعم أزرار الكيبورد لمن لديه كيبورد
+                window.addEventListener("keydown", (e) => {
+                    if(e.key === "ArrowLeft") player.x -= 15;
+                    if(e.key === "ArrowRight") player.x += 15;
+                    if(e.key === " " || e.key === "ArrowUp") {
+                        if(!player.jumping) { player.vy = -12; player.jumping = true; }
+                    }
+                    if(e.key === "f" || e.key === "Enter") bullets.push({ x: player.x + 25, y: player.y + 15, speed: 7 });
+                });
+
+                function spawnEnemy() {
+                    if (Math.random() < 0.02) {
+                        enemies.push({ x: 400, y: 240, width: 20, height: 30, speed: 2 });
+                    }
+                }
+
+                function update() {
+                    // جاذبية حركة اللاعب
+                    player.vy += 0.6;
+                    player.y += player.vy;
+                    if(player.y > 230) { player.y = 230; player.vy = 0; player.jumping = false; }
+                    if(player.x < 0) player.x = 0;
+                    if(player.x > 375) player.x = 375;
+
+                    // حركة الرصاص
+                    bullets.forEach((b, index) => {
+                        b.x += b.speed;
+                        if(b.x > 400) bullets.splice(index, 1);
+                    });
+
+                    // حركة الأعداء والاصطدام
+                    enemies.forEach((e, ei) => {
+                        e.x -= e.speed;
+                        if(e.x < 0) enemies.splice(ei, 1);
+
+                        // رصاص يضرب عدو
+                        bullets.forEach((b, bi) => {
+                            if(b.x > e.x && b.x < e.x + e.width && b.y > e.y && b.y < e.y + e.height) {
+                                enemies.splice(ei, 1);
+                                bullets.splice(bi, 1);
+                                score += 1;
+                                document.getElementById("score").innerText = score;
+                            }
+                        });
+                    });
+
+                    spawnEnemy();
+                }
+
+                function draw() {
+                    ctx.clearRect(0, 0, 400, 300);
+
+                    // رسم الأرضية عسكرية باللون البني
+                    ctx.fillStyle = "#553311";
+                    ctx.fillRect(0, 270, 400, 300);
+
+                    // رسم المقاتل (وسيم) باللون الأخضر المموه عسكرياً
+                    ctx.fillStyle = "#2E7D32";
+                    ctx.fillRect(player.x, player.y, player.width, player.height);
+                    // رسم السلاح بالأسود في يد اللاعب
+                    ctx.fillStyle = "#000";
+                    ctx.fillRect(player.x + 20, player.y + 15, 15, 6);
+
+                    // رسم الرصاص باللون الأصفر الذهبي مضيء
+                    ctx.fillStyle = "#FFD700";
+                    bullets.forEach(b => ctx.fillRect(b.x, b.y, 8, 4));
+
+                    // رسم الخصوم باللون الأحمر الشرس
+                    ctx.fillStyle = "#C62828";
+                    enemies.forEach(e => ctx.fillRect(e.x, e.y, e.width, e.height));
+                }
+
+                function gameLoop() {
+                    update();
+                    draw();
+                    requestAnimationFrame(gameLoop);
+                }
+
+                gameLoop();
+            </script>
+        </body>
+        </html>
+        """
+        # دمج كود اللعبة بداخل مكونات Streamlit لتعمل بملء الشاشة
+        components.html(game_html, height=520, scrolling=False)
+
+    # الأقسام الأخرى لإدارة السيرفر
     with tab2:
-        st.subheader("⚙️ إدارة غرف المعارك الحالية")
-        st.image("https://unsplash.com", caption="🛩️ منطقة العمليات الحربية والإنزال الجوي", use_container_width=True)
-        col1, col2 = st.columns(2)
-        with col1:
-            map_name = st.selectbox("🗺️ اختر خريطة المواجهة الحالية:", ["ساحة الصمود", "المدينة المدمرة", "موقع الإنزال"])
-            game_mode = st.radio("👥 نمط الفرق في السيرفر:", ["Squad (فريق)", "Duo (ثنائي)", "Solo (فردي)"])
-        with col2:
-            air_drop_rate = st.slider("✈️ معدل نزول صناديق الإمداد:", 1, 5, 3)
-            zone_speed = st.slider("⭕ سرعة تضييق دائرة الخطر:", 1.0, 3.0, 1.8)
-            
-        if st.button("💾 حفظ وتطبيق إعدادات الخريطة فوراً"):
-            st.success(f"✔️ تم تحديث خريطة السيرفر بنجاح! الخريطة النشطة الآن: {map_name}.")
+        st.subheader("🕹️ محاكي قتال غزة الحربية الافتراضي (السيرفر)")
+        if st.button("🔥 ابدأ معركة تجريبية في الخلفية"):
+            st.info("✈️ السيرفر يرسل الآن طائرة إمداد فوق ساحة الصمود...")
+            st.success("☠️ تم تحديث بيانات المعركة التجريبية بنجاح!")
+            st.balloons()
 
-    # القسم الثالث: متجر الشحن
     with tab3:
-        st.subheader("💎 نظام شحن وتوليد العملات الافتراضية للّاعبين")
-        player_id = st.text_input("🆔 أدخل رقم حساب اللاعب (Player ID):", placeholder="مثال: 70023415")
-        uc_amount = st.selectbox("💵 اختر كمية الـ War Coins المراد إرسالها للّاعب:", ["300 Coins", "660 Coins", "1800 Coins", "3850 Coins", "8100 Coins"])
-        
-        if st.button("⚡ إرسال العملات لحساب اللاعب"):
-            if player_id:
-                st.success(f"🎉 تم بنجاح إرسال {uc_amount} إلى حساب اللاعب رقم {player_id} في لعبة غزة الحربية!")
-            else:
-                st.warning("⚠️ يرجى إدخال معرف اللاعب (ID) أولاً.")
+        st.subheader("⚙️ إدارة غرف المعارك الحالية")
+        map_name = st.selectbox("🗺️ اختر خريطة المواجهة الحالية:", ["ساحة الصمود", "المدينة المدمرة"])
+        air_drop_rate = st.slider("✈️ معدل نزول صناديق الإمداد:", 1, 5, 3)
+        if st.button("💾 حفظ وتطبيق إعدادات الخريطة فوراً"):
+            st.success(f"✔️ تم تحديث خريطة السيرفر بنجاح!")
 
-    # القسم الرابع: شات المطورين
     with tab4:
-        st.subheader("💬 صندوق دردشة طاقم إدارة لعبة غزة الحربية")
-        st.write("تبادل الرسائل الفورية مع المشرفين:")
-        
-        for chat in st.session_state.chat_history:
-            st.text(f"👤 {chat['user']}: {chat['msg']}")
-            
-        new_msg = st.text_input("🖊️ اكتب رسالتك البرمجية هنا:")
-        if st.button("📨 إرسال وبث الرسالة عبر السيرفر"):
-            if new_msg:
-                st.session_state.chat_history.append({"user": "المطور وسيم", "msg": new_msg})
-                st.rerun()
+        st.subheader("💎 نظام شحن وتوليد العملات للّاعبين")
+        player_id = st.text_input("🆔 أدخل رقم حساب اللاعب (Player ID):")
+        uc_amount = st.selectbox("💵 اختر كمية الـ War Coins:", ["300 Coins", "660 Coins", "1800 Coins"])
+        if st.button("⚡ إرسال العملات لحساب اللاعب"):
+            st.success(f"🎉 تم بنجاح إرسال {uc_amount} إلى حساب اللاعب {player_id}!")
 
-    # القسم الخامس: مكافحة الهكر
     with tab5:
-        st.subheader("🛡️ جدار حماية غزة الحربية (Anti-Cheat)")
-        st.error("🚨 رادار الحماية: تم رصد لاعب يستخدم ثغرة الطيران في الجيم الحالي!")
-        suspect_id = st.text_input("🚫 أدخل ID اللاعب المخالف لتطبيق العقوبة:")
-        ban_duration = st.selectbox("⏳ نوع العقوبة والحظر للسيرفر:", ["حظر مؤقت لمدة 24 ساعة", "حظر لمدة 7 أيام", "حظر أبدي"])
-        if st.button("🔨 طرد وبند اللاعب المخالف"):
-            st.error(f"🔒 تم طرد الحساب {suspect_id} بنجاح وحظر الـ IP بواسطة المطور وسيم.")
+        st.subheader("🏆 نظام تفعيل بطاقات الرويال باس الذهبي (Premium Pass)")
+        p_id = st.text_input("🆔 أدخل ID اللاعب المراد ترقيته:")
+        if st.button("👑 تفعيل الرويال باس فوراً"):
+            st.success(f"🚀 مبروك! تم ترقية حساب اللاعب {p_id} الذهبي المطور!")
 
-    # القسم السادس: الأرباح والمالية
     with tab6:
-        st.subheader("💵 تقرير الخزينة والأرباح اليومية للعبة")
-        c1, c2, c3 = st.columns(3)
-        c1.metric(label="💰 أرباح إعلانات الموبايل (AdMob)", value="$410.20", delta="+24% اليوم")
-        c2.metric(label="💎 مبيعات متجر العملات (Coins)", value="$950.00", delta="+15% هذا الأسبوع")
-        c3.metric(label="🏦 الرصيد القابل للسحب الفوري", value="$1,360.20")
-        st.success("🔗 السيرفر مرتبط بنجاح بـ بنك فلسطين (PalPay)، ويتم تحويل الأموال تلقائياً لعمليات السحب اليومي والمستمر.")
-
-st.write("---")
-st.caption("حقوق التطوير والبرمجة بالكامل محفوظة للمطور وسيم © 2026 | Gaza Warfare Project")
-        
+    
