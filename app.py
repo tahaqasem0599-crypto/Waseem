@@ -50,8 +50,7 @@ elif st.session_state.current_stage == "ad_screen":
     st.write("شاهد الإعلان بالأسفل بالكامل لتحصل على محاولة ثانية مجانية وتكسب 50 ماسة فوراً لحسابك.")
     
     # -------------------------------------------------------------
-    # 📌 كود الإعلانات الحقيقي المتصل بشبكة Google AdMob
-    # يتم تحميل الإعلان تلقائياً ويحتسب الأرباح في حسابك فوراً بمجرد تفعيل الحساب
+    # 📌 كود الإعلانات الحقيقي المرتبط بمعرّف وسيم الجديد
     # -------------------------------------------------------------
     admob_html_code = """
     <div style="text-align:center; margin: 20px 0;">
@@ -62,8 +61,8 @@ elif st.session_state.current_stage == "ad_screen":
              style="display:block; text-align:center;"
              data-ad-layout="in-article"
              data-ad-format="fluid"
-             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-             data-ad-slot="YYYYYYYYYY"></ins>
+             data-ad-client="ca-pub-2644074166637349"
+             data-ad-slot="6350752475"></ins>
         <script>
              (adsbygoogle = window.adsbygoogle || []).push({});
         </script>
@@ -107,4 +106,3 @@ elif st.session_state.current_stage == "build":
     if st.button("العودة للرئيسية وإنهاء المهمة 🎉"):
         st.session_state.current_stage = "start"
         st.rerun()
-    
