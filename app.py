@@ -3,27 +3,6 @@ import streamlit as st
 # إعدادات شاشة اللعبة والهوية البصرية الرسمية
 st.set_page_config(page_title="غزة الحربية - النظام الشامل", page_icon="⚔️", layout="wide")
 
-# تخصيص الألوان والخلفيات الحربية (أسود داكن وأصفر ذهبي)
-st.markdown("""
-    <style>
-    .main { background-color: #0f0f0f; color: #FFFFFF; }
-    h1, h2, h3 { color: #FFCC00 !important; font-family: 'Cairo', sans-serif; text-shadow: 2px 2px 4px #000000; }
-    .stButton>button { background-color: #FFCC00; color: #121212; font-weight: bold; border-radius: 5px; width: 100%; border: 1px solid #FFCC00; }
-    .stButton>button:hover { background-color: #E6B800; color: #121212; box-shadow: 0px 0px 10px #FFCC00; }
-    div[data-testid="stMetricValue"] { color: #FFCC00 !important; font-weight: bold; }
-    .chat-box { background-color: #1e1e1e; padding: 15px; border-radius: 10px; border-left: 5px solid #FFCC00; margin-bottom: 10px; }
-    </style>
-    """, unsafe_allow_escaping=True)
-
-# دالة لتوليد تأثير صوتي رقمي تلقائي عند إرسال الرسائل
-def play_chat_sound():
-    audio_html = """
-    <audio autoplay>
-    <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==" type="audio/wav">
-    </audio>
-    """
-    st.markdown(audio_html, unsafe_allow_escaping=True)
-
 # بيانات دخول المطور وسيم
 ADMIN_USERNAME = "waseem"
 ADMIN_PASSWORD = "123"
@@ -57,7 +36,7 @@ if not st.session_state.logged_in:
 
 # 2. لوحة التحكم الشاملة والمثيرة بعد تسجيل الدخول بنجاح
 else:
-    col_header, col_logout = st.columns()
+    col_header, col_logout = st.columns([4, 1])
     with col_header:
         st.title("⚔️ لوحة تحكم لعبة غزة الحربية (Gaza Warfare)")
         st.subheader(f"👑 رئيس السيرفرات والمطور الرئيسي: المطور وسيم")
@@ -71,7 +50,7 @@ else:
     tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
         "🗺️ الخرائط والزون", 
         "💎 شحن الـ Coins", 
-        "💬 شات المطورين والصوت",
+        "💬 شات المطورين",
         "🛡️ مكافحة الهاكرز", 
         "🏆 قائمة الصدارة",
         "🔫 سكنات الأسلحة",
@@ -108,16 +87,15 @@ else:
     # القسم الثالث: شات المطورين
     with tab3:
         st.subheader("💬 صندوق دردشة طاقم إدارة لعبة غزة الحربية")
-        st.write("تبادل الرسائل الفورية مع المشرفين (يصدر صوت تنبيه عند الإرسال):")
+        st.write("تبادل الرسائل الفورية مع المشرفين:")
         
         for chat in st.session_state.chat_history:
-            st.markdown(f"<div class='chat-box'><b>👤 {chat['user']}:</b> {chat['msg']}</div>", unsafe_allow_escaping=True)
+            st.text(f"👤 {chat['user']}: {chat['msg']}")
             
         new_msg = st.text_input("🖊️ اكتب رسالتك البرمجية هنا:")
         if st.button("📨 إرسال وبث الرسالة عبر السيرفر"):
             if new_msg:
                 st.session_state.chat_history.append({"user": "المطور وسيم", "msg": new_msg})
-                play_chat_sound()
                 st.rerun()
 
     # القسم الرابع: مكافحة الهكر
@@ -125,18 +103,18 @@ else:
         st.subheader("🛡️ جدار حماية غزة الحربية (Anti-Cheat)")
         st.error("🚨 رادار الحماية: تم رصد لاعب يستخدم ثغرة الطيران في الجيم الحالي!")
         suspect_id = st.text_input("🚫 أدخل ID اللاعب المخالف لتطبيق العقوبة:")
-        ban_duration = st.selectbox("⏳ نوع العقوبة والحظر للسيرفر:", ["حظر مؤقت لمدة 24 ساعة", "حظر لمدة 7 أيام", "حظر أبدي وجلب عنوان الجهاز"])
+        ban_duration = st.selectbox("⏳ نوع العقوبة والحظر للسيرفر:", ["حظر مؤقت لمدة 24 ساعة", "حظر لمدة 7 أيام", "حظر أبدي"])
         if st.button("🔨 طرد وبند اللاعب المخالف"):
             st.error(f"🔒 تم طرد الحساب {suspect_id} بنجاح وحظر الـ IP بواسطة المطور وسيم.")
 
-    # القسم الخامس: قائمة الصدارة النصية الآمنة (تم إلغاء الجدول المسبب للمشاكل)
+    # القسم الخامس: قائمة الصدارة
     with tab5:
         st.subheader("🏆 قائمة أفضل اللاعبين في لعبة غزة الحربية")
         st.info("🥇 المركز الأول: الصقر_الغزاوي (ID: 552144) - عدد القتلى: 1420 كِل")
         st.info("🥈 المركز الثاني: waseem_hero (ID: 100234) - عدد القتلى: 1390 كِل")
         st.info("🥉 المركز الثالث: المدمر_007 (ID: 883411) - عدد القتلى: 1100 كِل")
 
-    # القسم السادس: سكنات وتصميم الأسلحة
+    # القسم السادس: سكنات الأسلحة
     with tab6:
         st.subheader("🔫 مستودع سكنات وتطوير الأسلحة")
         st.image("https://unsplash.com", caption="🎯 تعديل وتخصيص التمويهات العسكرية الحصرية لأسلحتك", use_container_width=True)
