@@ -41,7 +41,7 @@ else:
     col_header, col_logout = st.columns()
     with col_header:
         st.title("⚔️ لوحة تحكم لعبة غزة الحربية (Gaza Warfare)")
-        st.subheader(f"👑 رئيس السيرفرات والمطور الرئيسي: المطور وسيم")
+        st.subheader("👑 رئيس السيرفرات والمطور الرئيسي: المطور وسيم")
     with col_logout:
         if st.button("🚪 مغادرة السيرفر"):
             st.session_state.logged_in = False
@@ -64,17 +64,17 @@ else:
         st.subheader("🎯 ساحة القتال المباشرة - لعبة غزة الحربية")
         st.write("استخدم أزرار التحكم باللمس أسفل الشاشة لتحريك اللاعب وإطلاق النار وتدمير الأهداف القادمة:")
         
-        # كود اللعبة بلغة HTML5 و JavaScript مصمم خصيصاً للشاشات والموبايل
         game_html = """
         <!DOCTYPE html>
         <html>
         <head>
-            <meta name="viewport" content="width=device-width, initial-scale=initial-scale=1.0, user-scalable=no">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
             <style>
                 body { margin: 0; background: #111; color: white; font-family: sans-serif; text-align: center; touch-action: none; }
                 canvas { background: #222; display: block; margin: 10px auto; border: 2px solid #FFCC00; max-width: 100%; border-radius: 8px; }
                 .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 320px; margin: 15px auto; }
-                button { background: #FFCC00; color: #111; font-weight: bold; border: none; padding: 15px; border-radius: 8px; font-size: 18px; active { background: #E6B800; } }
+                button { background: #FFCC00; color: #111; font-weight: bold; border: none; padding: 15px; border-radius: 8px; font-size: 18px; }
+                button:active { background: #E6B800; }
                 .fire-btn { grid-column: span 3; background: #FF3333; color: white; }
                 #score-board { font-size: 20px; color: #FFCC00; font-weight: bold; margin-top: 5px; }
             </style>
@@ -99,24 +99,15 @@ else:
                 let enemies = [];
                 let score = 0;
 
-                // أزرار اللمس للموبايل
-                document.getElementById("btnLeft").addEventListener("touchstart", () => player.x -= 20);
-                document.getElementById("btnRight").addEventListener("touchstart", () => player.x += 20);
-                document.getElementById("btnJump").addEventListener("touchstart", () => {
+                document.getElementById("btnLeft").addEventListener("touchstart", (e) => { e.preventDefault(); player.x -= 20; });
+                document.getElementById("btnRight").addEventListener("touchstart", (e) => { e.preventDefault(); player.x += 20; });
+                document.getElementById("btnJump").addEventListener("touchstart", (e) => {
+                    e.preventDefault();
                     if(!player.jumping) { player.vy = -12; player.jumping = true; }
                 });
-                document.getElementById("btnFire").addEventListener("touchstart", () => {
+                document.getElementById("btnFire").addEventListener("touchstart", (e) => {
+                    e.preventDefault();
                     bullets.push({ x: player.x + 25, y: player.y + 15, speed: 7 });
-                });
-
-                // دعم أزرار الكيبورد لمن لديه كيبورد
-                window.addEventListener("keydown", (e) => {
-                    if(e.key === "ArrowLeft") player.x -= 15;
-                    if(e.key === "ArrowRight") player.x += 15;
-                    if(e.key === " " || e.key === "ArrowUp") {
-                        if(!player.jumping) { player.vy = -12; player.jumping = true; }
-                    }
-                    if(e.key === "f" || e.key === "Enter") bullets.push({ x: player.x + 25, y: player.y + 15, speed: 7 });
                 });
 
                 function spawnEnemy() {
@@ -126,25 +117,21 @@ else:
                 }
 
                 function update() {
-                    // جاذبية حركة اللاعب
                     player.vy += 0.6;
                     player.y += player.vy;
                     if(player.y > 230) { player.y = 230; player.vy = 0; player.jumping = false; }
                     if(player.x < 0) player.x = 0;
                     if(player.x > 375) player.x = 375;
 
-                    // حركة الرصاص
                     bullets.forEach((b, index) => {
                         b.x += b.speed;
                         if(b.x > 400) bullets.splice(index, 1);
                     });
 
-                    // حركة الأعداء والاصطدام
                     enemies.forEach((e, ei) => {
                         e.x -= e.speed;
                         if(e.x < 0) enemies.splice(ei, 1);
 
-                        // رصاص يضرب عدو
                         bullets.forEach((b, bi) => {
                             if(b.x > e.x && b.x < e.x + e.width && b.y > e.y && b.y < e.y + e.height) {
                                 enemies.splice(ei, 1);
@@ -160,23 +147,14 @@ else:
 
                 function draw() {
                     ctx.clearRect(0, 0, 400, 300);
-
-                    // رسم الأرضية عسكرية باللون البني
                     ctx.fillStyle = "#553311";
                     ctx.fillRect(0, 270, 400, 300);
-
-                    // رسم المقاتل (وسيم) باللون الأخضر المموه عسكرياً
                     ctx.fillStyle = "#2E7D32";
                     ctx.fillRect(player.x, player.y, player.width, player.height);
-                    // رسم السلاح بالأسود في يد اللاعب
                     ctx.fillStyle = "#000";
                     ctx.fillRect(player.x + 20, player.y + 15, 15, 6);
-
-                    // رسم الرصاص باللون الأصفر الذهبي مضيء
                     ctx.fillStyle = "#FFD700";
                     bullets.forEach(b => ctx.fillRect(b.x, b.y, 8, 4));
-
-                    // رسم الخصوم باللون الأحمر الشرس
                     ctx.fillStyle = "#C62828";
                     enemies.forEach(e => ctx.fillRect(e.x, e.y, e.width, e.height));
                 }
@@ -192,7 +170,6 @@ else:
         </body>
         </html>
         """
-        # دمج كود اللعبة بداخل مكونات Streamlit لتعمل بملء الشاشة
         components.html(game_html, height=520, scrolling=False)
 
     # الأقسام الأخرى لإدارة السيرفر
@@ -208,7 +185,7 @@ else:
         map_name = st.selectbox("🗺️ اختر خريطة المواجهة الحالية:", ["ساحة الصمود", "المدينة المدمرة"])
         air_drop_rate = st.slider("✈️ معدل نزول صناديق الإمداد:", 1, 5, 3)
         if st.button("💾 حفظ وتطبيق إعدادات الخريطة فوراً"):
-            st.success(f"✔️ تم تحديث خريطة السيرفر بنجاح!")
+            st.success("✔️ تم تحديث خريطة السيرفر بنجاح!")
 
     with tab4:
         st.subheader("💎 نظام شحن وتوليد العملات للّاعبين")
@@ -224,4 +201,16 @@ else:
             st.success(f"🚀 مبروك! تم ترقية حساب اللاعب {p_id} الذهبي المطور!")
 
     with tab6:
+        st.subheader("💬 صندوق دردشة طاقم إدارة لعبة غزة الحربية")
+        for chat in st.session_state.chat_history:
+            st.text(f"👤 {chat['user']}: {chat['msg']}")
+
+    with tab7:
+        st.subheader("🛡️ جدار حماية غزة الحربية (Anti-Cheat)")
+        suspect_id = st.text_input("🚫 أدخل ID اللاعب المخالف:")
+        if st.button("🔨 طرد وبند اللاعب المخالف"):
+            st.error(f"🔒 تم طرد الحساب {suspect_id} بنجاح من اللعبة بواسطة المطور وسيم.")
+
+st.write("---")
+st.caption("حقوق التطوير والبرمجة بالكامل محفوظة للمطور وسيم © 2026 | Gaza Warfare Project")
     
