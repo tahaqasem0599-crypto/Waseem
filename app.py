@@ -1,7 +1,7 @@
 import streamlit as st
 import streamlit.components.v1 as com
 
-# 1. إعدادات الصفحة وتحسين العرض لشاشات الهواتف والكمبيوتر
+# 1. إعدادات الصفحة وتحسين العرض
 st.set_page_config(
     page_title="الملحمي",
     layout="wide",
@@ -28,9 +28,8 @@ st.markdown("""
 st.title("🛡️ المدرعة: الإصدار السينمائي الأخير")
 st.write("🚀 النسخة المطورّة جاهزة للعمل واللعب بجودة عالية وبدون توقف!")
 
-# 3. كود اللعبة بالكامل (HTML + CSS + JavaScript المطور)
-game_html = """
-<!DOCTYPE html>
+# 3. تقسيم كود الـ HTML إلى أجزاء لمنع خطأ علامات الاقتباس الثلاثية نهائياً
+html_start = """<!DOCTYPE html>
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
@@ -77,7 +76,7 @@ game_html = """
             background: linear-gradient(135deg, #38bdf8, #0ea5e9); 
             color: white; border: none;
             padding: 14px 40px; font-size: 20px; font-weight: bold;
-            border-radius: 30px; cursor: pointer; shadow: 0 4px 15px rgba(14,165,233,0.4);
+            border-radius: 30px; cursor: pointer;
             transition: transform 0.1s; margin-top: 15px;
         }
         .btn:active { transform: scale(0.95); }
@@ -89,13 +88,13 @@ game_html = """
         .ctrl-btn {
             flex: 1; background: #1e293b; border: 2px solid #475569;
             color: white; padding: 15px; font-size: 18px; font-weight: bold;
-            border-radius: 12px; active-background: #334155; text-align: center;
+            border-radius: 12px; text-align: center;
         }
     </style>
 </head>
-<body>
+<body>"""
 
-    <div id="game-container">
+html_body = """    <div id="game-container">
         <canvas id="gameCanvas"></canvas>
         <div class="ui-layer">
             <div class="score-bar">
@@ -117,14 +116,13 @@ game_html = """
         </div>
     </div>
 
-    <!-- أزرار التحكم اللمسية للهواتف -->
     <div class="controls">
         <div class="ctrl-btn" id="btnLeft">⬅️ يمين</div>
         <div class="ctrl-btn" id="btnFire" style="background: #0284c7; border-color: #38bdf8;">🔥 إطلاق</div>
         <div class="ctrl-btn" id="btnRight">يسار ➡️</div>
-    </div>
+    </div>"""
 
-    <script>
+html_script = """    <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
@@ -138,7 +136,6 @@ game_html = """
         window.addEventListener('resize', resize);
         resize();
 
-        // إعداد أزرار اللمس للهواتf
         const setupTouch = (btn, pressCallback, releaseCallback) => {
             btn.addEventListener('touchstart', (e) => { e.preventDefault(); pressCallback(); });
             btn.addEventListener('touchend', (e) => { e.preventDefault(); releaseCallback(); });
@@ -149,7 +146,6 @@ game_html = """
         setupTouch(document.getElementById('btnRight'), () => moveRight = true, () => moveRight = false);
         setupTouch(document.getElementById('btnFire'), () => isFiring = true, () => isFiring = false);
 
-        // التحكم عبر لوحة مفاتيح الكمبيوتر (اختياري)
         window.addEventListener('keydown', (e) => {
             if(e.key === 'ArrowLeft' || e.key === 'a') moveLeft = true;
             if(e.key === 'ArrowRight' || e.key === 'd') moveRight = true;
@@ -214,37 +210,40 @@ game_html = """
             if (!gameActive) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 1. تحريك المدرعة (اللاعب)
             if (moveLeft && player.x > 0) player.x -= player.speed;
             if (moveRight && player.x < canvas.width - player.width) player.x += player.speed;
 
-            // رسم المدرعة المطورّة
             ctx.fillStyle = '#38bdf8';
             ctx.fillRect(player.x, player.y, player.width, player.height);
             ctx.fillStyle = '#0ea5e9';
-            ctx.fillRect(player.x + player.width/2 - 5, player.y - 10, 10, 10); // مدفع المدرعة
+            ctx.fillRect(player.x + player.width/2 - 5, player.y - 10, 10, 10);
 
-            // 2. إطلاق القذائف تلقائياً عند الضغط المستمر
             let now = Date.now();
             if (isFiring && now - lastFire > 250) {
                 bullets.push({ x: player.x + player.width / 2 - 3, y: player.y - 10, width: 6, height: 12, speed: 7 });
                 lastFire = now;
             }
 
-            // رسم وتحريك القذائف
-            ctx.fillStyle = '#f59e0b';
             bullets.forEach((bullet, index) => {
                 bullet.y -= bullet.speed;
                 ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
                 if (bullet.y < 0) bullets.splice(index, 1);
             });
 
-            // 3. إدارة وحركة مدرعات الأعداء
             enemies.forEach((enemy, eIndex) => {
                 enemy.y += enemy.speed;
                 
-                // رسم مدرعة العدو
                 ctx.fillStyle = '#ef4444';
                 ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
                 ctx.fillStyle = '#991b1b';
-                
+                ctx.fillRect(enemy.x + 4, enemy.y + 4, enemy.width - 8, enemy.height - 8);
+
+                if (enemy.x < player.x + player.width && enemy.x + enemy.width > player.x &&
+                    enemy.y < player.y + player.height && enemy.y + enemy.height > player.y) {
+                    enemies.splice(eIndex, 1);
+                    createExplosion(enemy.x + enemy.width/2, enemy.y + enemy.height/2, '#ef4444');
+                    lives--;
+                    updateUI();
+                    if(lives <= 0) gameOver();
+                }
+
