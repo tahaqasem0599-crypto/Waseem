@@ -1,77 +1,130 @@
 import streamlit as st
-import streamlit.components.v1 as com
+import pandas as pd
+import numpy as np
 
-st.set_page_config(page_title='🛡️ كتيبة الصمود', layout='wide')
+# 1. إعدادات الصفحة وتحسين المظهر لشاشات الهواتف
+st.set_page_config(
+    page_title="المنصة الذكية المتكاملة",
+    page_icon="🚀",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-# إلغاء الفراغات نهائياً
-st.markdown('<style>body,.main,.block-container{padding:0!important;margin:0!important;background:#0d0e12;}iframe{border:none;width:100%;}</style>', unsafe_allow_html=True)
+# تنسيق واجهة المستخدم لجعلها مريحة وعصرية
+st.markdown("""
+    <style>
+        .main { background-color: #0f172a; color: #f8fafc; }
+        .stButton>button { width: 100%; border-radius: 8px; background-color: #38bdf8; color: white; font-weight: bold; }
+        .stButton>button:hover { background-color: #0ea5e9; }
+        h1, h2, h3 { color: #38bdf8 !important; }
+        .stTextInput>div>div>input { background-color: #1e293b; color: white; }
+    </style>
+""", unsafe_allow_html=True)
 
-# كود اللعبة البسيط والسريع جداً لضمان الفتح الفوري بدون شاشة بيضاء
-h = '<!DOCTYPE html><html lang="ar"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">'
-h += '<style>*{box-sizing:border-box;user-select:none;}body{margin:0;padding:0;background:#0d0e12;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:100vh;font-family:sans-serif;}'
-h += '#game-container{position:relative;width:95vw;max-width:480px;height:65vh;max-height:500px;background:#27272a;border:4px solid #10b981;border-radius:20px;overflow:hidden;box-shadow:0 0 25px rgba(16,185,129,0.3);}'
-h += 'canvas{display:block;width:100%;height:100%;}.ui-layer{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}'
-h += '.hud{display:flex;justify-content:space-between;padding:12px;color:#fff;font-size:16px;font-weight:bold;background:rgba(0,0,0,0.8);border-bottom:2px solid #10b981;}'
-h += '.menu-screen{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(10,15,25,0.98);display:flex;flex-direction:column;justify-content:center;align-items:center;color:white;pointer-events:auto;text-align:center;padding:20px;}'
-h += '.btn{background:linear-gradient(135deg,#10b981,#ef4444);color:white;border:none;padding:14px 40px;font-size:20px;font-weight:bold;border-radius:30px;cursor:pointer;box-shadow:0 5px 20px rgba(16,185,129,0.4);}'
-h += '.controls-grid{display:grid;grid-template-columns:repeat(3,1fr);width:95vw;max-width:480px;margin-top:10px;gap:8px;pointer-events:auto;}'
-h += '.ctrl-btn{background:#1f2937;border:2px solid #374151;color:#10b981;padding:15px;font-size:18px;font-weight:bold;border-radius:14px;text-align:center;}'
-h += '#btnFire{grid-column:span 3;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;padding:16px;font-size:20px;}</style></head><body>'
+# 2. القائمة الجانبية للتنقل بين الأقسام
+st.sidebar.title("📌 قائمة الأقسام")
+st.sidebar.write("اختر الأداة التي تريد استخدامها:")
+section = st.sidebar.radio(
+    "الانتقال إلى:",
+    ["📊 لوحة البيانات والرسوم", "📝 المساعد الذكي والتلخيص", "🧮 الحاسبة العلمية", "🗒️ مدير المهام اليومية"]
+)
 
-h += '<div id="game-container"><canvas id="gameCanvas"></canvas><div class="ui-layer">'
-h += '<div class="hud"><div id="scoreDisplay">خسائر الأعداء: 0</div><div id="liveDisplay">❤️ ❤️ ❤️</div></div>'
-h += '<div id="mainMenu" class="menu-screen"><h1 style="color:#10b981;margin:0 0 10px 0;font-size:26px;">🛡️ كتيبة الفرسان (PUBG 2D)</h1><p style="color:#9ca3af;margin:0 0 25px 0;font-size:14px;">قد فريق العُصب الخضراء وتصدّى للمليشيات وسط الركام!</p><button class="btn" onclick="startGame()">ابدأ المعركة ⚡</button></div>'
-h += '<div id="gameOverMenu" class="menu-screen" style="display:none;"><h1 style="color:#ef4444;margin:0 0 10px 0;">💥 انتهت المواجهة</h1><button class="btn" onclick="startGame()">إعادة الانتشار</button></div>'
-h += '</div></div>'
+st.sidebar.markdown("---")
+st.sidebar.write("🚀 تم التطوير بكفاءة عالية للعمل على الهواتف والكمبيوتر.")
 
-h += '<div class="controls-grid">'
-h += '<div class="ctrl-btn" id="btnUp">⬆️ تقدم</div><div class="ctrl-btn" id="btnLeft">◀ يمين</div><div class="ctrl-btn" id="btnRight">يسار ▶</div>'
-h += '<div class="ctrl-btn" id="btnDown" style="grid-column:span 3;">⬇️ تراجع</div>'
-h += '<div class="ctrl-btn" id="btnFire">🔥 إطلاق النيران التكتيكي</div>'
-h += '</div>'
+# 3. تشغيل الأقسام بناءً على اختيار المستخدم
 
-h += '<script>const canvas=document.getElementById("gameCanvas");const ctx=canvas.getContext("2d");'
-h += 'let player,bullets,enemyBullets,enemies,obstacles,score,lives,gameActive;let mvUp=false,mvDown=false,mvLeft=false,mvRight=false,isFiring=false;'
-h += 'function resize(){canvas.width=canvas.offsetWidth;canvas.height=canvas.offsetHeight;}window.addEventListener("resize",resize);resize();'
-h += 'const setupTouch=(btn,press,release)=>{btn.addEventListener("touchstart",(e)=>{e.preventDefault();press();});btn.addEventListener("touchend",(e)=>{e.preventDefault();release();});btn.addEventListener("mousedown",press);btn.addEventListener("mouseup",release);};'
-h += 'setupTouch(document.getElementById("btnUp"),()=>mvUp=true,()=>mvUp=false);setupTouch(document.getElementById("btnDown"),()=>mvDown=true,()=>mvDown=false);'
-h += 'setupTouch(document.getElementById("btnLeft"),()=>mvLeft=true,()=>mvLeft=false);setupTouch(document.getElementById("btnRight"),()=>mvRight=true,()=>mvRight=false);'
-h += 'setupTouch(document.getElementById("btnFire"),()=>isFiring=true,()=>isFiring=false);'
+# --- القسم الأول: لوحة البيانات ---
+if section == "📊 لوحة البيانات والرسوم":
+    st.title("📊 لوحة تحليل البيانات التفاعلية")
+    st.write("عرض إحصائي ذكي ومطور لإنتاجية العمل وجني الأرباح:")
+    
+    # توليد بيانات وهمية احترافية
+    chart_data = pd.DataFrame(
+        np.random.randn(20, 3) * [10, 5, 15] +,
+        columns=['الأرباح الشهرية', 'الإنتاجية', 'المبيعات الكلية']
+    )
+    
+    # عرض المؤشرات الرقمية السريعة
+    col1, col2, col3 = st.columns(3)
+    col1.metric("إجمالي الأرباح", "$12,450", "+12.5%")
+    col2.metric("كفاءة العمل", "94%", "+4%")
+    col3.metric("المبيعات هذا الشهر", "1,180 قطعة", "+8.2%")
+    
+    st.markdown("---")
+    st.subheader("📈 المنحنى البياني للأداء والمبيعات")
+    st.line_chart(chart_data)
 
-h += 'function startGame(){resize();document.getElementById("mainMenu").style.display="none";document.getElementById("gameOverMenu").style.display="none";'
-h += 'player={x:canvas.width/2,y:canvas.height-60,r:14,s:4,angle:-Math.PI/2};'
-h += 'bullets=[];enemyBullets=[];enemies=[];score=0;lives=3;gameActive=true;'
-h += 'obstacles=[{x:40,y:100,w:60,h:30,c:"#7f1d1d"},{x:canvas.width-100,y:180,w:70,h:35,c:"#4b5563"}];'
-h += 'updateUI();animate();spawnEnemy();}'
-h += 'function updateUI(){document.getElementById("scoreDisplay").innerText="خسائر الأعداء: "+score;document.getElementById("liveDisplay").innerText="❤️ ".repeat(lives);}'
+# --- القسم الثاني: المساعد الذكي وتلخيص النصوص ---
+elif section == "📝 المساعد الذكي والتلخيص":
+    st.title("📝 المساعد النصي ومحرر التلخيص")
+    st.write("اكتب أو الصق أي نص طويل لتلخيصه، أو اطلب صياغة إيميل/رسالة فوراً:")
+    
+    text_input = st.text_area("ضع النص الخاص بك هنا:", height=150, placeholder="أدخل النص أو المقال الطويل...")
+    
+    col1, col2 = st.columns(2)
+    if col1.button("⚡ تلخيص النص فوراً"):
+        if text_input:
+            st.success("💡 التلخيص الذكي المقترح:")
+            # محاكاة تلخيص ذكي سريع بناءً على النص
+            words = text_input.split()
+            summary = " ".join(words[:min(len(words), 30)]) + "..."
+            st.write(f"**أهم النقاط المستخلصة:** {summary}")
+        else:
+            st.warning("⚠️ الرجاء كتابة نص أولاً لتلخيصه.")
+            
+    if col2.button("✍️ تحويل إلى إيميل رسمي"):
+        if text_input:
+            st.success("✉️ الصيغة الرسمية للإيميل:")
+            st.code(f"السلام عليكم ورحمة الله وبركاته،\n\nبناءً على طلبكم، نود إفادتكم بالتالي:\n{text_input}\n\nوتفضلوا بقبول فائق الاحترام والتقدير.", language="text")
+        else:
+            st.warning("⚠️ الرجاء كتابة الفكرة الأساسية لتحويلها لإيميل.")
 
-h += 'function spawnEnemy(){if(!gameActive)return;if(enemies.length<3){enemies.push({x:Math.random()*canvas.width,y:-20,r:12,s:1.5,lastFire:Date.now()});}setTimeout(spawnEnemy,2000);}'
+# --- القسم الثالث: الحاسبة العلمية ---
+elif section == "🧮 الحاسبة العلمية":
+    st.title("🧮 الحاسبة العلمية والمطورة")
+    st.write("حل المعادلات الحسابية والمسائل الرياضية بدقة متناهية:")
+    
+    num1 = st.number_input("أدخل الرقم الأول:", value=0.0)
+    num2 = st.number_input("أدخل الرقم الثاني:", value=0.0)
+    
+    operation = st.selectbox("اختر العملية الحسابية:", ["جمع (+)", "طرح (-)", "ضرب (×)", "قسمة (÷)", "أس (💻)"])
+    
+    if st.button("🧮 احسب النتيجة"):
+        if operation == "جمع (+)":
+            res = num1 + num2
+        elif operation == "طرح (-)":
+            res = num1 - num2
+        elif operation == "ضرب (×)":
+            res = num1 * num2
+        elif operation == "قسمة (÷)":
+            res = num1 / num2 if num2 != 0 else "خطأ! لا يمكن القسمة على صفر"
+        elif operation == "أس (💻)":
+            res = num1 ** num2
+            
+        st.success(f"📊 النتيجة النهائية هي: **{res}**")
 
-h += 'function drawP(x,y,r,angle,hasBand,isEnemy){'
-h += 'ctx.fillStyle=isEnemy?"#1e1b4b":"#064e3b";ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();'
-h += 'ctx.fillStyle="#fbcfe8";ctx.beginPath();ctx.arc(x,y,r-4,0,Math.PI*2);ctx.fill();'
-h += 'if(hasBand){ctx.fillStyle="#22c55e";ctx.beginPath();ctx.arc(x,y,r-2,angle-0.4,angle+0.4);ctx.lineWidth=4;ctx.strokeStyle="#22c55e";ctx.stroke();}'
-h += 'ctx.fillStyle="#000";ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.fillRect(0,-2,12,4);ctx.restore();}'
-
-h += 'let lastPlayerFire=0;function animate(){if(!gameActive)return;ctx.clearRect(0,0,canvas.width,canvas.height);'
-h += 'obstacles.forEach(o=>{ctx.fillStyle=o.c;ctx.fillRect(o.x,o.y,o.w,o.h);});'
-
-h += 'let mx=0,my=0;if(mvUp)my-=player.s;if(mvDown)my+=player.s;if(mvLeft)mx-=player.s;if(mvRight)mx+=player.s;'
-h += 'player.x+=mx;player.y+=my;if(mx!==0||my!==0)player.angle=Math.atan2(my,mx);'
-h += 'if(player.x<15)player.x=15;if(player.x>canvas.width-15)player.x=canvas.width-15;if(player.y<15)player.y=15;if(player.y>canvas.height-15)player.y=canvas.height-15;'
-
-h += 'drawP(player.x,player.y,player.r,player.angle,true,false);'
-h += 'drawP(player.x-40,player.y+20,player.r-2,player.angle,true,false);drawP(player.x+40,player.y+20,player.r-2,player.angle,true,false);'
-
-h += 'let now=Date.now();if(isFiring&&now-lastPlayerFire>250){bullets.push({x:player.x,y:player.y,vx:Math.cos(player.angle)*8,vy:Math.sin(player.angle)*8});bullets.push({x:player.x-40,y:player.y+20,vx:Math.cos(player.angle)*8,vy:Math.sin(player.angle)*8});bullets.push({x:player.x+40,y:player.y+20,vx:Math.cos(player.angle)*8,vy:Math.sin(player.angle)*8});lastPlayerFire=now;}'
-
-h += 'bullets.forEach((b,bi)=>{b.x+=b.vx;b.y+=b.vy;ctx.fillStyle="#f59e0b";ctx.fillRect(b.x,b.y,4,4);if(b.x<0||b.x>canvas.width||b.y<0||b.y>canvas.height)bullets.splice(bi,1);});'
-h += 'enemyBullets.forEach((eb,ebi)=>{eb.x+=eb.vx;eb.y+=eb.vy;ctx.fillStyle="#ef4444";ctx.fillRect(eb.x,eb.y,4,4);if(eb.x>player.x-14&&eb.x<player.x+14&&eb.y>player.y-14&&eb.y<player.y+14){enemyBullets.splice(ebi,1);lives--;updateUI();if(lives<=0)go();};if(eb.x<0||eb.x>canvas.width||eb.y<0||eb.y>canvas.height)enemyBullets.splice(ebi,1);});'
-
-h += 'enemies.forEach((e,ei)=>{let dx=player.x-e.x,dy=player.y-e.y;let eAng=Math.atan2(dy,dx);e.x+=Math.cos(eAng)*e.s;e.y+=Math.sin(eAng)*e.s;drawP(e.x,e.y,e.r,eAng,false,true);'
-h += 'if(now-e.lastFire>1500){enemyBullets.push({x:e.x,y:e.y,vx:Math.cos(eAng)*4,vy:Math.sin(eAng)*4});e.lastFire=now;}'
-h += 'bullets.forEach((b,bi)=>{if(b.x>e.x-12&&b.x<e.x+12&&b.y>e.y-12&&b.y<e.y+12){bullets.splice(bi,1);enemies.splice(ei,1);score+=10;updateUI();}});});'
-
-h += 'requestAnimationFrame(animate);}function go(){gameActive=false;document.getElementById("gameOverMenu").style.display="flex";}</script></body></html>'
-
-com.html(h, height=620, scrolling=False)
+# --- القسم الرابع: مدير المهام اليومية ---
+elif section == "🗒️ مدير المهام اليومية":
+    st.title("🗒️ مدير المهام والملاحظات الحية")
+    st.write("نظم وقتك ومهامك البرمجية واليومية لزيادة إنتاجيتك:")
+    
+    # استخدام session_state لحفظ المهام مؤقتاً أثناء التنقل
+    if "todo_list" not in st.session_state:
+        st.session_state.todo_list = ["تحديث ملف الكود app.py", "مراجعة إحصائيات الأسبوع", "تجهيز التقارير البرمجية"]
+        
+    new_task = st.text_input("➕ أضف مهمة جديدة قائمة الأعمال:", placeholder="اكتب المهمة هنا واضغط على الزر...")
+    if st.button("إضافة المهمة"):
+        if new_task:
+            st.session_state.todo_list.append(new_task)
+            st.rerun()
+            
+    st.markdown("---")
+    st.subheader("📋 قائمة مهامك الحالية:")
+    
+    for i, task in enumerate(st.session_state.todo_list):
+        col_t, col_b = st.columns([4, 1])
+        col_t.write(f"🔹 {task}")
+        if col_b.button("🗑️ حذف", key=f"del_{i}"):
+            st.session_state.todo_list.pop(i)
+            st.rerun()
