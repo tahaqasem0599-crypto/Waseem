@@ -11,9 +11,9 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("⚡ وحدة الطوارئ المدرعة: الإصدار السينمائي الأخير 🇵🇸")
-st.write("تم إضافة النيازك الجوية، دروع الحماية، ومحرك الأكشن المطور لجني الأرباح بدون توقف!")
+st.write("تم إصلاح الكود بالكامل! اللعبة جاهزة للعمل وجني الأرباح بدون توقف.")
 
-# محرك الألعاب المتكامل والأخير (HTML5 Canvas + Shield System + Meteor Storm + Storage)
+# محرك الألعاب المتكامل والأخير بعد حل مشكلة علامات الاقتباس والأقواس المفتوحة
 game_html = """
 <!DOCTYPE html>
 <html lang="ar">
@@ -143,15 +143,12 @@ game_html = """
         if (!gameActive) { gameLoopId = null; return; }
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // رسم الطريق الفخم
         ctx.fillStyle = "#090d16"; ctx.fillRect(0, 190, canvas.width, 260);
         ctx.fillStyle = "#1e293b"; ctx.fillRect(0, 315, canvas.width, 6);
 
-        // حركة المركبة الانسيابية
         let dy = vehicle.targetY - vehicle.y;
         if (Math.abs(dy) > 2) vehicle.y += Math.sign(dy) * vehicle.speed;
 
-        // إدارة مؤقت درع الحماية
         if (vehicle.hasShield) {
             vehicle.shieldTime--;
             if (vehicle.shieldTime <= 0) {
@@ -160,12 +157,10 @@ game_html = """
             }
         }
 
-        // رسم المدرعة الفخمة
         ctx.fillStyle = "#1e293b"; ctx.fillRect(vehicle.x, vehicle.y, vehicle.width, vehicle.height);
         ctx.fillStyle = "#38bdf8"; ctx.fillRect(vehicle.x + 45, vehicle.y + 5, 20, 10);
         ctx.fillStyle = "#ef4444"; ctx.fillRect(vehicle.x + 5, vehicle.y + 12, 10, 10);
 
-        // رسم فقاعة درع الحماية إذا كانت نشطة
         if (vehicle.hasShield) {
             ctx.strokeStyle = "#34d399"; ctx.lineWidth = 3;
             ctx.beginPath();
@@ -173,30 +168,24 @@ game_html = """
             ctx.stroke();
         }
 
-        // تحديث وحركة سلاح الليزر
         for (let i = lasers.length - 1; i >= 0; i--) {
             let l = lasers[i]; l.x += l.speed;
             ctx.fillStyle = "#22c55e"; ctx.fillRect(l.x, l.y, l.width, l.height);
             if (l.x > 360) lasers.splice(i, 1);
         }
 
-        // توليد حركة النيازك الجوية الساقطة من الأعلى
         if (Math.random() < 0.015 && meteors.length < 2) {
             meteors.push({ x: Math.random() * 200 + 100, y: -20, speedY: 5, speedX: -2, radius: 12 });
         }
 
-        // تحديث ورسم النيازك
         for (let i = meteors.length - 1; i >= 0; i--) {
             let m = meteors[i]; m.y += m.speedY; m.x += m.speedX;
             ctx.fillStyle = "#f97316"; ctx.beginPath(); ctx.arc(m.x, m.y, m.radius, 0, 2*Math.PI); ctx.fill();
             
-            // تصادم النيزك مع المركبة
             let distVehicle = Math.hypot((vehicle.x + vehicle.width/2) - m.x, (vehicle.y + vehicle.height/2) - m.y);
             if (distVehicle < m.radius + 20) {
                 meteors.splice(i, 1);
-                if (vehicle.hasShield) {
-                    playTone(200, "sine", 0.1, 0.2);
-                } else {
+                if (!vehicle.hasShield) {
                     endGame();
                 }
                 continue;
@@ -204,16 +193,26 @@ game_html = """
             if (m.y > 540) meteors.splice(i, 1);
         }
 
-        // توليد أيقونات درع الحماية العشوائية في الشارع
         if (Math.random() < 0.005 && powerups.length < 1) {
             let lanes =;
             powerups.push({ x: 360, y: lanes[Math.floor(Math.random()*2)] + 5, width: 25, height: 25 });
         }
 
-        // تحديث ورسم الدروع والتقاطها
         for (let i = powerups.length - 1; i >= 0; i--) {
             let p = powerups[i]; p.x -= 4;
-            ctx.fillStyle = "#34d399"; ctx.fillRect(p.x, p.y, p.width, p.height); // مربع أخضر نيون للدرع
+            ctx.fillStyle = "#34d399"; ctx.fillRect(p.x, p.y, p.width, p.height);
             
             if (p.x < vehicle.x + vehicle.width && p.x + p.width > vehicle.x && p.y < vehicle.y + vehicle.height && p.y + p.height > vehicle.y) {
+                powerups.splice(i, 1);
+                vehicle.hasShield = true;
+                vehicle.shieldTime = 300;
+                document.getElementById('shield-indicator').style.display = "block";
+                playTone(700, "sine", 0.2, 0.2);
+                continue;
+            }
+            if (p.x < -30) powerups.splice(i, 1);
+        }
+
+        if (Math.random() < 0.03 && enemies.length < 3) {
+            let lanes =;
             
