@@ -39,9 +39,9 @@ if section == "📊 لوحة البيانات والرسوم":
     st.title("📊 لوحة تحليل البيانات التفاعلية")
     st.write("عرض إحصائي ذكي ومطور لإنتاجية العمل وجني الأرباح:")
     
-    # توليد بيانات وهمية احترافية
+    # تصحيح سطر البيانات العشوائية وحذف علامة الزائد الخاطئة
     chart_data = pd.DataFrame(
-        np.random.randn(20, 3) * [10, 5, 15] +,
+        np.random.randn(20, 3) * 10,
         columns=['الأرباح الشهرية', 'الإنتاجية', 'المبيعات الكلية']
     )
     
@@ -66,7 +66,6 @@ elif section == "📝 المساعد الذكي والتلخيص":
     if col1.button("⚡ تلخيص النص فوراً"):
         if text_input:
             st.success("💡 التلخيص الذكي المقترح:")
-            # محاكاة تلخيص ذكي سريع بناءً على النص
             words = text_input.split()
             summary = " ".join(words[:min(len(words), 30)]) + "..."
             st.write(f"**أهم النقاط المستخلصة:** {summary}")
@@ -109,11 +108,10 @@ elif section == "🗒️ مدير المهام اليومية":
     st.title("🗒️ مدير المهام والملاحظات الحية")
     st.write("نظم وقتك ومهامك البرمجية واليومية لزيادة إنتاجيتك:")
     
-    # استخدام session_state لحفظ المهام مؤقتاً أثناء التنقل
     if "todo_list" not in st.session_state:
         st.session_state.todo_list = ["تحديث ملف الكود app.py", "مراجعة إحصائيات الأسبوع", "تجهيز التقارير البرمجية"]
         
-    new_task = st.text_input("➕ أضف مهمة جديدة قائمة الأعمال:", placeholder="اكتب المهمة هنا واضغط على الزر...")
+    new_task = st.text_input("➕ أضف مهمة جديدة إلى قائمة الأعمال:", placeholder="اكتب المهمة هنا واضغط على الزر...")
     if st.button("إضافة المهمة"):
         if new_task:
             st.session_state.todo_list.append(new_task)
