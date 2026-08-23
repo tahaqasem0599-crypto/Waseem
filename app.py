@@ -1,175 +1,250 @@
 import streamlit as st
 import streamlit.components.v1 as com
 
-# 1. إعدادات الصفحة وتحسين الأداء
+# 1. إعدادات الصفحة وتحسين العرض لشاشات الهواتف والكمبيوتر
 st.set_page_config(
     page_title="الملحمي",
-    layout="wide", # تحسين العرض ليشمل الشاشة كاملة
+    layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# 2. إخفاء القوائم الافتراضية لـ Streamlit وتنسيق الحواف
+# 2. تحسين مظهر واجهة Streamlit وإلغاء الفراغات
 st.markdown("""
     <style>
         body, .main, .block-container { 
             padding: 0 !important; 
             margin: 0 !important;
+            background-color: #0f172a;
         }
         iframe { 
             border: none; 
             border-radius: 12px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             width: 100%;
         }
     </style>
 """, unsafe_allow_html=True)
 
-# 3. العناوين الرئيسية للتطبيق
 st.title("🛡️ المدرعة: الإصدار السينمائي الأخير")
-st.write("🚀 النسخة المطورّة جاهزة للعمل وجني الأرباح بدون توقف!")
+st.write("🚀 النسخة المطورّة جاهزة للعمل واللعب بجودة عالية وبدون توقف!")
 
-# 4. كود الـ HTML والـ CSS والـ JS المطور للعبة
+# 3. كود اللعبة بالكامل (HTML + CSS + JavaScript المطور)
 game_html = """
 <!DOCTYPE html>
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; user-select: none; }
         body { 
-            margin: 0; 
-            padding: 0; 
+            margin: 0; padding: 0; 
             background: #0f172a; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
+            font-family: system-ui, sans-serif;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            min-height: 100vh; overflow: hidden;
         }
-        #canvas-container { 
+        #game-container { 
             position: relative; 
-            width: 100%;
-            max-width: 800px;
-            aspect-ratio: 16/9;
-            background: #000;
-            border-radius: 8px;
-            overflow: hidden;
+            width: 95vw; max-width: 500px;
+            height: 75vh; max-height: 600px;
+            background: #020617; 
+            border: 3px solid #38bdf8; border-radius: 16px;
+            overflow: hidden; box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
         }
-        canvas { 
-            display: block; 
-            width: 100%;
-            height: 100%;
-        }
+        canvas { display: block; width: 100%; height: 100%; }
         .ui-layer { 
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-        .interactive { 
-            pointer-events: auto; 
+            position: absolute; top: 0; left: 0; 
+            width: 100%; height: 100%; pointer-events: none; 
         }
         .score-bar { 
-            display: flex; 
-            justify-content: space-between; 
-            padding: 15px;
-            color: #fff;
-            font-size: 18px;
-            font-weight: bold;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            display: flex; justify-content: space-between; 
+            padding: 12px 20px; color: #fff;
+            font-size: 18px; font-weight: bold;
+            background: linear-gradient(to bottom, rgba(15,23,42,0.8), transparent);
         }
         .menu-screen { 
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 100%;
-            height: 100%;
+            position: absolute; top: 0; left: 0; 
+            width: 100%; height: 100%; 
             background: rgba(15, 23, 42, 0.95);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: white;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            color: white; pointer-events: auto;
+            text-align: center; padding: 20px;
         }
         .btn { 
-            background: #38bdf8; 
-            color: white; 
-            border: none;
-            padding: 12px 32px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 6px rgba(56, 189, 248, 0.2);
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9); 
+            color: white; border: none;
+            padding: 14px 40px; font-size: 20px; font-weight: bold;
+            border-radius: 30px; cursor: pointer; shadow: 0 4px 15px rgba(14,165,233,0.4);
+            transition: transform 0.1s; margin-top: 15px;
         }
-        .btn:hover { 
-            background: #0ea5e9; 
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(14, 165, 233, 0.4);
+        .btn:active { transform: scale(0.95); }
+        .controls {
+            display: flex; width: 95vw; max-width: 500px;
+            justify-content: space-between; margin-top: 10px;
+            pointer-events: auto; gap: 10px;
+        }
+        .ctrl-btn {
+            flex: 1; background: #1e293b; border: 2px solid #475569;
+            color: white; padding: 15px; font-size: 18px; font-weight: bold;
+            border-radius: 12px; active-background: #334155; text-align: center;
         }
     </style>
 </head>
 <body>
 
-    <div id="canvas-container">
+    <div id="game-container">
         <canvas id="gameCanvas"></canvas>
-        
-        <!-- واجهة المستخدم الفوقية للعبة -->
         <div class="ui-layer">
             <div class="score-bar">
                 <div id="scoreDisplay">النقاط: 0</div>
                 <div id="liveDisplay">❤️ ❤️ ❤️</div>
             </div>
             
-            <!-- شاشة القائمة الرئيسية / البداية -->
-            <div id="mainMenu" class="menu-screen interactive">
-                <h1 style="margin-bottom: 20px; color: #38bdf8;">معركة المدرعة</h1>
-                <button class="btn" onclick="startGame()">ابدأ اللعب الآن</button>
+            <div id="mainMenu" class="menu-screen">
+                <h1 style="color: #38bdf8; margin: 0 0 10px 0; font-size: 28px;">🛡️ معركة المدرعة الملحمية</h1>
+                <p style="color: #94a3b8; margin: 0 0 20px 0; font-size: 14px;">دمر مدرعات الأعداء وحافظ على طاقتك!</p>
+                <button class="btn" onclick="startGame()">إطلاق المعركة</button>
+            </div>
+
+            <div id="gameOverMenu" class="menu-screen" style="display: none;">
+                <h1 style="color: #ef4444; margin-bottom: 5px;">💥 انتهت المعركة</h1>
+                <p id="finalScore" style="font-size: 18px; color: #cbd5e1;"></p>
+                <button class="btn" style="background: #ef4444;" onclick="startGame()">إعادة المحاولة</button>
             </div>
         </div>
+    </div>
+
+    <!-- أزرار التحكم اللمسية للهواتف -->
+    <div class="controls">
+        <div class="ctrl-btn" id="btnLeft">⬅️ يمين</div>
+        <div class="ctrl-btn" id="btnFire" style="background: #0284c7; border-color: #38bdf8;">🔥 إطلاق</div>
+        <div class="ctrl-btn" id="btnRight">يسار ➡️</div>
     </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
-        // ضبط أبعاد الأقراص بدقة عالية
-        function resizeCanvas() {
+        let player, bullets, enemies, particles, score, lives, gameActive;
+        let moveLeft = false, moveRight = false, isFiring = false;
+
+        function resize() {
             canvas.width = canvas.offsetWidth;
             canvas.height = canvas.offsetHeight;
         }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+        window.addEventListener('resize', resize);
+        resize();
+
+        // إعداد أزرار اللمس للهواتf
+        const setupTouch = (btn, pressCallback, releaseCallback) => {
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); pressCallback(); });
+            btn.addEventListener('touchend', (e) => { e.preventDefault(); releaseCallback(); });
+            btn.addEventListener('mousedown', pressCallback);
+            btn.addEventListener('mouseup', releaseCallback);
+        };
+        setupTouch(document.getElementById('btnLeft'), () => moveLeft = true, () => moveLeft = false);
+        setupTouch(document.getElementById('btnRight'), () => moveRight = true, () => moveRight = false);
+        setupTouch(document.getElementById('btnFire'), () => isFiring = true, () => isFiring = false);
+
+        // التحكم عبر لوحة مفاتيح الكمبيوتر (اختياري)
+        window.addEventListener('keydown', (e) => {
+            if(e.key === 'ArrowLeft' || e.key === 'a') moveLeft = true;
+            if(e.key === 'ArrowRight' || e.key === 'd') moveRight = true;
+            if(e.key === ' ' || e.key === 'Enter') isFiring = true;
+        });
+        window.addEventListener('keyup', (e) => {
+            if(e.key === 'ArrowLeft' || e.key === 'a') moveLeft = false;
+            if(e.key === 'ArrowRight' || e.key === 'd') moveRight = false;
+            if(e.key === ' ' || e.key === 'Enter') isFiring = false;
+        });
 
         function startGame() {
+            resize();
             document.getElementById('mainMenu').style.display = 'none';
-            // هنا يتم تشغيل محرك اللعبة البرمجي الخاص بك تلقائياً
+            document.getElementById('gameOverMenu').style.display = 'none';
+            
+            player = { x: canvas.width / 2 - 20, y: canvas.height - 50, width: 40, height: 25, speed: 5 };
+            bullets = [];
+            enemies = [];
+            particles = [];
+            score = 0;
+            lives = 3;
+            gameActive = true;
+            
+            updateUI();
             animate();
         }
 
-        function animate() {
-            // محرك الرسم والتحديث الخاص باللعبة
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // (مثال مؤقت لرسم خلفية شبكية متحركة مطورة)
-            ctx.fillStyle = '#1e293b';
-            ctx.font = '20px Arial';
-            ctx.fillStyle = '#64748b';
-            ctx.fillText("جاري تشغيل محرك اللعب المطور...", canvas.width/2 - 130, canvas.height/2);
-            
-            requestAnimationFrame(animate);
+        function updateUI() {
+            document.getElementById('scoreDisplay').innerText = `النقاط: ${score}`;
+            document.getElementById('liveDisplay').innerText = '❤️ '.repeat(lives);
         }
-    </script>
-</body>
-</html>
-"""
 
-# 5. استدعاء وعرض اللعبة باستخدام الاسم المستعار الصحيح (com) وبأبعاد متوافقة
-com.html(game_html, height=550, scrolling=False)
+        function spawnEnemy() {
+            if (!gameActive) return;
+            let size = Math.random() * 20 + 20;
+            enemies.push({
+                x: Math.random() * (canvas.width - size),
+                y: -size,
+                width: size,
+                height: size,
+                speed: Math.random() * 1.5 + 1.5
+            });
+            setTimeout(spawnEnemy, Math.max(600, 1500 - score * 10));
+        }
+
+        function createExplosion(x, y, color) {
+            for(let i=0; i<10; i++) {
+                particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: (Math.random() - 0.5) * 4,
+                    radius: Math.random() * 3 + 1,
+                    alpha: 1,
+                    color: color
+                });
+            }
+        }
+
+        let lastFire = 0;
+        function animate() {
+            if (!gameActive) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 1. تحريك المدرعة (اللاعب)
+            if (moveLeft && player.x > 0) player.x -= player.speed;
+            if (moveRight && player.x < canvas.width - player.width) player.x += player.speed;
+
+            // رسم المدرعة المطورّة
+            ctx.fillStyle = '#38bdf8';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            ctx.fillStyle = '#0ea5e9';
+            ctx.fillRect(player.x + player.width/2 - 5, player.y - 10, 10, 10); // مدفع المدرعة
+
+            // 2. إطلاق القذائف تلقائياً عند الضغط المستمر
+            let now = Date.now();
+            if (isFiring && now - lastFire > 250) {
+                bullets.push({ x: player.x + player.width / 2 - 3, y: player.y - 10, width: 6, height: 12, speed: 7 });
+                lastFire = now;
+            }
+
+            // رسم وتحريك القذائف
+            ctx.fillStyle = '#f59e0b';
+            bullets.forEach((bullet, index) => {
+                bullet.y -= bullet.speed;
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                if (bullet.y < 0) bullets.splice(index, 1);
+            });
+
+            // 3. إدارة وحركة مدرعات الأعداء
+            enemies.forEach((enemy, eIndex) => {
+                enemy.y += enemy.speed;
+                
+                // رسم مدرعة العدو
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                ctx.fillStyle = '#991b1b';
+                
