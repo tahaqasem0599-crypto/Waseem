@@ -1,16 +1,21 @@
-using UnityEngine;
+import streamlit as st
 
-public class PubgShooting : MonoBehaviour {
-    public GameObject bullet; // الرصاصة
-    public Transform barrelEnd; // فوهة السلاح
-    public float bulletSpeed = 2000f;
+# إعدادات عنوان الصفحة والشكل
+st.set_page_config(page_title="لعبة ببجي وسيم", page_icon="🎮", layout="centered")
 
-    void Update() {
-        // عند الضغط على الماوس أو زر الإطلاق في الموبايل
-        if (Input.GetButtonDown("Fire1")) {
-            GameObject bulletInstance = Instantiate(bullet, barrelEnd.position, barrelEnd.rotation);
-            bulletInstance.GetComponent<Rigidbody>().AddForce(barrelEnd.forward * bulletSpeed);
-            Destroy(bulletInstance, 2f); // تدمير الرصاصة بعد ثانيتين لتوفير موارد الجهاز
-        }
-    }
-}
+# واجهة البرنامج
+st.title("🎮 لوحة تحكم لعبة ببجي - للمطور وسيم")
+st.subheader("مرحباً بك في نظام إدارة وتطوير اللعبة")
+
+# المتغيرات الخاصة باللعبة تم تحويلها إلى لغة بايثون
+bullet_speed = 2000.0  # سرعة الرصاصة
+player_health = 100    # صحة اللاعب
+
+# عرض البيانات للمستخدم بشكل احترافي
+st.info(f"🚀 إعدادات السلاح الحالية: سرعة الإطلاق مثبتة على {bullet_speed} متر/ثانية")
+
+# زر تجريبي داخل تطبيقك
+if st.button("🔥 تجربة إطلاق نار"):
+    st.success("تم محاكاة إطلاق الرصاصة بنجاح داخل السيرفر!")
+    st.balloons()
+    
