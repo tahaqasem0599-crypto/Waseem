@@ -1,86 +1,90 @@
 import streamlit as st
 import streamlit.components.v1 as com
 
-st.set_page_config(page_title='معركة الصمود - نمط كونترا', layout='wide')
+st.set_page_config(page_title='🛡️ كتيبة الصمود', layout='wide')
 
 st.markdown('<style>body,.main,.block-container{padding:0!important;margin:0!important;background:#06140c;}iframe{border:none;width:100%;}</style>', unsafe_allow_html=True)
 
-st.title('🛡️ كتيبة الصمود: حرب الشوارع (نمط كونترا)')
-st.write('🎮 تحرك، اقفز فوق السيارات والأنقاض، وأطلق النار لتطهير شوارع المدينة من الميليشيات الغازية!')
+st.title('🛡️ كتيبة الفرسان: محاكاة صمود شوارع المدينة')
+st.write('🎮 أسلوب رماية تكتيكي: قُد فريقك بالعُصب الخضراء وتصدّى لآليات ومليشيات الأعداء وسط ركام وأزقة الشوارع!')
 
-# كود اللعبة بنمط كونترا وببجي ثنائي الأبعاد (تحرك جانبي، قفز، منصات وسيارات)
+# كود اللعبة المطور بنمط رماية واتجاهات دائرية مع فريق وسواتر وسيارات محطمة
 h = '<!DOCTYPE html><html lang="ar"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">'
-h += '<style>*{box-sizing:border-box;user-select:none;}body{margin:0;padding:0;background:#090d16;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:100vh;font-family:sans-serif;}'
-h += '#game-container{position:relative;width:95vw;max-width:550px;height:65vh;max-height:480px;background:linear-gradient(to bottom,#111827,#1f2937);border:4px solid #10b981;border-radius:20px;overflow:hidden;box-shadow:0 0 35px rgba(16,185,129,0.3);}'
+h += '<style>*{box-sizing:border-box;user-select:none;}body{margin:0;padding:0;background:#0d0e12;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:100vh;font-family:sans-serif;}'
+h += '#game-container{position:relative;width:95vw;max-width:500px;height:68vh;max-height:520px;background:#27272a;border:4px solid #10b981;border-radius:24px;overflow:hidden;box-shadow:0 0 35px rgba(16,185,129,0.3);}'
 h += 'canvas{display:block;width:100%;height:100%;}'
 h += '.ui-layer{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}'
-h += '.hud{display:flex;justify-content:space-between;padding:12px 15px;color:#fff;font-size:15px;font-weight:bold;background:rgba(0,0,0,0.75);border-bottom:2px solid #10b981;}'
-h += '.menu-screen{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(10,15,30,0.98);display:flex;flex-direction:column;justify-content:center;align-items:center;color:white;pointer-events:auto;text-align:center;padding:20px;}'
+h += '.hud{display:flex;justify-content:space-between;padding:12px 15px;color:#fff;font-size:15px;font-weight:bold;background:rgba(0,0,0,0.8);border-bottom:2px solid #10b981;}'
+h += '.menu-screen{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(10,15,25,0.98);display:flex;flex-direction:column;justify-content:center;align-items:center;color:white;pointer-events:auto;text-align:center;padding:20px;}'
 h += '.btn{background:linear-gradient(135deg,#10b981,#ef4444);color:white;border:none;padding:14px 40px;font-size:20px;font-weight:bold;border-radius:30px;cursor:pointer;box-shadow:0 5px 20px rgba(16,185,129,0.4);}'
-h += '.controls{display:flex;width:95vw;max-width:550px;justify-content:space-between;margin-top:12px;pointer-events:auto;gap:8px;}'
-h += '.ctrl-btn{flex:1;background:#1f2937;border:2px solid #374151;color:#10b981;padding:16px;font-size:18px;font-weight:bold;border-radius:14px;text-align:center;}'
-h += '#btnFire{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;flex:1.3;box-shadow:0 4px 15px rgba(239,68,68,0.4);}'
-h += '#btnJump{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;flex:1.1;box-shadow:0 4px 15px rgba(37,99,235,0.4);}</style></head><body>'
+h += '.controls-grid{display:grid;grid-template-columns:repeat(3,1fr);width:95vw;max-width:500px;margin-top:12px;gap:8px;pointer-events:auto;}'
+h += '.ctrl-btn{background:#1f2937;border:2px solid #374151;color:#10b981;padding:14px;font-size:18px;font-weight:bold;border-radius:14px;text-align:center;}'
+h += '#btnFire{grid-column:span 3;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;box-shadow:0 4px 15px rgba(239,68,68,0.4);padding:16px;font-size:20px;}</style></head><body>'
 
 h += '<div id="game-container"><canvas id="gameCanvas"></canvas><div class="ui-layer">'
 h += '<div class="hud"><div id="scoreDisplay">خسائر الأعداء: 0</div><div id="liveDisplay">❤️ ❤️ ❤️</div></div>'
-h += '<div id="mainMenu" class="menu-screen"><h1 style="color:#10b981;margin:0 0 10px 0;font-size:28px;text-shadow:0 0 15px #10b981;">🛡️ فرسان الصمود (Contra Mode)</h1><p style="color:#9ca3af;margin:0 0 25px 0;font-size:14px;line-height:1.5;">تحرك في الشوارع، اقفز فوق السيارات المحطمة، وتصدى مع جنود العُصب الخضراء لهجوم الميليشيات!</p><button class="btn" onclick="startGame()">دخول ساحة المعركة ⚡</button></div>'
-h += '<div id="gameOverMenu" class="menu-screen" style="display:none;"><h1 style="color:#ef4444;margin:0 0 10px 0;">💥 تضررت فرقتك</h1><p id="finalScore" style="font-size:18px;color:#d1d5db;margin:0 0 25px 0;"></p><button class="btn" style="background:linear-gradient(135deg,#10b981,#1f2937);" onclick="startGame()">إعادة تنظيم الصفوف</button></div>'
+h += '<div id="mainMenu" class="menu-screen"><h1 style="color:#10b981;margin:0 0 10px 0;font-size:26px;text-shadow:0 0 15px #10b981;">🛡️ كتيبة الفرسان (PUBG 2D Mode)</h1><p style="color:#9ca3af;margin:0 0 25px 0;font-size:14px;line-height:1.5;">تحرك في كافة الاتجاهات وسط الركام وحطام السيارات، وقُد فريقك بالعُصب الخضراء لصد هجوم مليشيات التوغل الغازية!</p><button class="btn" onclick="startGame()">دخول الساحة والاشتباك ⚡</button></div>'
+h += '<div id="gameOverMenu" class="menu-screen" style="display:none;"><h1 style="color:#ef4444;margin:0 0 10px 0;">💥 انتهت المواجهة</h1><p id="finalScore" style="font-size:17px;color:#d1d5db;margin:0 0 25px 0;"></p><button class="btn" style="background:linear-gradient(135deg,#10b981,#1f2937);" onclick="startGame()">إعادة الانتشار عسكرياً</button></div>'
 h += '</div></div>'
 
-h += '<div class="controls"><div class="ctrl-btn" id="btnLeft">◀ يمين</div><div class="ctrl-btn" id="btnRight">يسار ▶</div><div class="ctrl-btn" id="btnJump">🦘 قفز</div><div class="ctrl-btn" id="btnFire">🔥 إطلاق</div></div>'
+h += '<div class="controls_zone"><div class="controls-grid">'
+h += '<div class="ctrl-btn" id="btnUp">⬆️ تقدم</div><div class="ctrl-btn" id="btnLeft">◀ يمين</div><div class="ctrl-btn" id="btnRight">يسار ▶</div>'
+h += '<div class="ctrl-btn" id="btnDown" style="grid-column:span 3;">⬇️ تراجع للخلف</div>'
+h += '<div class="ctrl-btn" id="btnFire">🔥 إطلاق النيران (360 درجة)</div>'
+h += '</div></div>'
 
 h += '<script>const canvas=document.getElementById("gameCanvas");const ctx=canvas.getContext("2d");'
-h += 'let player,bullets,enemyBullets,enemies,cars,particles,score,lives,gameActive;let moveLeft=false,moveRight=false,isFiring=false;const gravity=0.5;const groundY=380;'
+h += 'let player,allies,bullets,enemyBullets,enemies,obstacles,particles,score,lives,gameActive;let mvUp=false,mvDown=false,mvLeft=false,mvRight=false,isFiring=false;'
 h += 'function resize(){canvas.width=canvas.offsetWidth;canvas.height=canvas.offsetHeight;}window.addEventListener("resize",resize);resize();'
-h += 'const setup=(b,p,r)=>{b.addEventListener("touchstart",(e)=>{e.preventDefault();p();});b.addEventListener("touchend",(e)=>{e.preventDefault();r();});b.addEventListener("mousedown",p);b.addEventListener("mouseup",r);};'
-h += 'setup(document.getElementById("btnLeft"),()=>moveLeft=true,()=>moveLeft=false);setup(document.getElementById("btnRight"),()=>moveRight=true,()=>moveRight=false);setup(document.getElementById("btnFire"),()=>isFiring=true,()=>isFiring=false);'
-h += 'document.getElementById("btnJump").addEventListener("touchstart",(e)=>{e.preventDefault();jump();});document.getElementById("btnJump").addEventListener("mousedown",jump);'
-
-h += 'function jump(){if(player&&!player.isJumping){player.vy=-10;player.isJumping=true;}}'
+h += 'const setupTouch=(btn,press,release)=>{btn.addEventListener("touchstart",(e)=>{e.preventDefault();press();});btn.addEventListener("touchend",(e)=>{e.preventDefault();release();});btn.addEventListener("mousedown",press);btn.addEventListener("mouseup",release);};'
+h += 'setupTouch(document.getElementById("btnUp"),()=>mvUp=true,()=>mvUp=false);setupTouch(document.getElementById("btnDown"),()=>mvDown=true,()=>mvDown=false);'
+h += 'setupTouch(document.getElementById("btnLeft"),()=>mvLeft=true,()=>mvLeft=false);setupTouch(document.getElementById("btnRight"),()=>mvRight=true,()=>mvRight=false);'
+h += 'setupTouch(document.getElementById("btnFire"),()=>isFiring=true,()=>isFiring=false);'
 
 h += 'function startGame(){resize();document.getElementById("mainMenu").style.display="none";document.getElementById("gameOverMenu").style.display="none";'
-h += 'player={x:50,y:groundY-40,w:24,h:40,vx:0,vy:0,isJumping:false,facing:1};bullets=[];enemyBullets=[];enemies=[];particles=[];score=0;lives=3;gameActive=true;'
-h += 'cars=[{x:180,y:groundY-30,w:70,h:30,color:"#4b5563"},{x:360,y:groundY-30,w:70,h:30,color:"#7f1d1d"}];'
+h += 'player={x:canvas.width/2,y:canvas.height-80,r:14,s:4,angle:-Math.PI/2};'
+h += 'allies=[{x:canvas.width/2-60,y:canvas.height-60,r:11,s:3.5,lastFire:0},{x:canvas.width/2+60,y:canvas.height-60,r:11,s:3.5,lastFire:0}];'
+h += 'bullets=[];enemyBullets=[];enemies=[];particles=[];score=0;lives=3;gameActive=true;'
+h += 'obstacles=[{x:40,y:120,w:70,h:35,type:"car",color:"#7f1d1d"},{x:canvas.width-120,y:200,w:80,h:40,type:"rubble",color:"#4b5563"},{x:canvas.width/2-40,y:280,w:80,h:25,type:"wall",color:"#1f2937"}];'
 h += 'updateUI();animate();spawnEnemy();}'
 h += 'function updateUI(){document.getElementById("scoreDisplay").innerText="خسائر الأعداء: "+score;document.getElementById("liveDisplay").innerText="❤️ ".repeat(lives);}'
 
-h += 'function spawnEnemy(){if(!gameActive)return;if(enemies.length<3){enemies.push({x:canvas.width+20,y:groundY-40,w:24,h:40,s:1.5+Math.random(),lastFire:Date.now()});}setTimeout(spawnEnemy,2000);}'
-
-h += 'function explode(x,y,color,count=10){for(let i=0;i<count;i++){particles.push({x:x,y:y,vx:(Math.random()-0.5)*5,vy:(Math.random()-0.5)*5,r:Math.random()*3+1,a:1,c:color});}}'
+h += 'function spawnEnemy(){if(!gameActive)return;if(enemies.length<4){enemies.push({x:Math.random()*canvas.width,y:-20,r:12,s:1.2+Math.random()*0.8,lastFire:Date.now()});}setTimeout(spawnEnemy,1800);}'
+h += 'function explode(x,y,color,count=12){for(let i=0;i<count;i++){let ang=Math.random()*Math.PI*2;particles.push({x:x,y:y,vx:Math.cos(ang)*Math.random()*4,vy:Math.sin(ang)*Math.random()*4,r:Math.random()*2.5+1,a:1,c:color});}}'
 
 h += 'let lastPlayerFire=0;function animate(){if(!gameActive)return;ctx.clearRect(0,0,canvas.width,canvas.height);'
-h += 'ctx.fillStyle="#374151";ctx.fillRect(0,groundY,canvas.width,canvas.height-groundY);ctx.fillStyle="#1f2937";ctx.fillRect(0,groundY,canvas.width,6);'
+h += 'obstacles.forEach(o=>{ctx.fillStyle=o.color;ctx.fillRect(o.x,o.y,o.w,o.h);ctx.strokeStyle="#111";ctx.lineWidth=2;ctx.strokeRect(o.x,o.y,o.w,o.h);if(o.type==="car"){ctx.fillStyle="#111";ctx.fillRect(o.x+4,o.y-4,10,4);ctx.fillRect(o.x+o.w-14,o.y-4,10,4);}});'
 
-h += 'cars.forEach(c=>{ctx.fillStyle=c.color;ctx.fillRect(c.x,c.y,c.w,c.h);ctx.fillStyle="#111";ctx.fillRect(c.x+8,c.y+c.h-8,14,14);ctx.fillRect(c.x+c.w-22,c.y+c.h-8,14,14);});'
+h += 'let mx=0,my=0;if(mvUp)my-=player.s;if(mvDown)my+=player.s;if(mvLeft)mx-=player.s;if(mvRight)mx+=player.s;'
+h += 'player.x+=mx;player.y+=my;if(mx!==0||my!==0)player.angle=Math.atan2(my,mx);'
+h += 'if(player.x<15)player.x=15;if(player.x>canvas.width-15)player.x=canvas.width-15;if(player.y<15)player.y=15;if(player.y>canvas.height-15)player.y=canvas.height-15;'
 
-h += 'if(moveLeft){player.x-=4;player.facing=-1;}if(moveRight){player.x+=4;player.facing=1;}if(player.x<0)player.x=0;if(player.x>canvas.width-player.w)player.x=canvas.width-player.w;'
+h += 'obstacles.forEach(o=>{if(player.x+player.r>o.x&&player.x-player.r<o.x+o.w&&player.y+player.r>o.y&&player.y-player.r<o.y+o.h){player.x-=mx;player.y-=my;}});'
 
-h += 'player.vy+=gravity;player.y+=player.vy;let onPlatform=false;'
-h += 'cars.forEach(c=>{if(player.x+player.w>c.x&&player.x<c.x+c.w&&player.y+player.h>=c.y&&player.y+player.h-player.vy<=c.y+10&&player.vy>=0){player.y=c.y-player.h;player.vy=0;player.isJumping=false;onPlatform=true;}});'
-h += 'if(!onPlatform&&player.y>=groundY-player.h){player.y=groundY-player.h;player.vy=0;player.isJumping=false;}'
+h += 'function drawP(x,y,r,angle,hasBand,isEnemy){'
+h += 'ctx.fillStyle=isEnemy?"#1e1b4b":"#064e3b";ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();'
+h += 'ctx.fillStyle="#fbcfe8";ctx.beginPath();ctx.arc(x,y,r-4,0,Math.PI*2);ctx.fill();'
+h += 'if(hasBand){ctx.fillStyle="#22c55e";ctx.beginPath();ctx.arc(x,y,r-2,angle-0.5,angle+0.5);ctx.lineWidth=4;ctx.strokeStyle="#22c55e";ctx.stroke();}'
+h += 'ctx.fillStyle="#000";ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.fillRect(0,-3,14,5);ctx.restore();}'
 
-h += 'function drawSoldier(x,y,w,h,hasBand,isEnemy,face){'
-h += 'ctx.fillStyle=isEnemy?"#312e81":"#064e3b";ctx.fillRect(x,y+h/3,w,h*2/3);ctx.fillStyle="#fbcfe8";ctx.beginPath();ctx.arc(x+w/2,y+h/6,w/3,0,Math.PI*2);ctx.fill();'
-h += 'if(hasBand){ctx.fillStyle="#22c55e";ctx.fillRect(x+2,y+4,w-4,4);}'
-h += 'ctx.fillStyle="#000";let gunX=face===1?x+w:x-8;ctx.fillRect(gunX,y+h/2,8,4);}'
+h += 'drawP(player.x,player.y,player.r,player.angle,true,false);'
 
-h += 'drawSoldier(player.x,player.y,player.w,player.h,true,false,player.facing);'
+h += 'let now=Date.now();allies.forEach(a=>{'
+h += 'let target=enemies[0];if(target){let dx=target.x-a.x,dy=target.y-a.y;let ang=Math.atan2(dy,dx);a.x+=Math.cos(ang)*1.2;a.y+=Math.sin(ang)*1.2;'
+h += 'obstacles.forEach(o=>{if(a.x+a.r>o.x&&a.x-a.r<o.x+o.w&&a.y+a.r>o.y&&a.y-a.r<o.y+o.h){a.x-=Math.cos(ang)*1.2;a.y-=Math.sin(ang)*1.2;}});'
+h += 'drawP(a.x,a.y,a.r,ang,true,false);if(now-a.lastFire>600){bullets.push({x:a.x,y:a.y,vx:Math.cos(ang)*7,vy:Math.sin(ang)*7,isAlly:true});a.lastFire=now;}}else{drawP(a.x,a.y,a.r,-Math.PI/2,true,false);}});'
 
-h += 'let now=Date.now();if(isFiring&&now-lastPlayerFire>250){bullets.push({x:player.facing===1?player.x+player.w:player.x,y:player.y+player.h/2,vx:player.facing*8,vy:0});lastPlayerFire=now;}'
+h += 'if(isFiring&&now-lastPlayerFire>200){bullets.push({x:player.x,y:player.y,vx:Math.cos(player.angle)*9,vy:Math.sin(player.angle)*9,isAlly:false});lastPlayerFire=now;}'
 
-h += 'bullets.forEach((b,bi)=>{b.x+=b.vx;ctx.fillStyle="#f59e0b";ctx.fillRect(b.x,b.y,6,3);if(b.x<0||b.x>canvas.width)bullets.splice(bi,1);});'
-h += 'enemyBullets.forEach((eb,ebi)=>{eb.x+=eb.vx;ctx.fillStyle="#ef4444";ctx.fillRect(eb.x,eb.y,6,3);'
-h += 'if(eb.x>player.x&&eb.x<player.x+player.w&&eb.y>player.y&&eb.y<player.y+player.h){enemyBullets.splice(ebi,1);lives--;explode(player.x+player.w/2,player.y+player.h/2,"#ef4444",15);updateUI();if(lives<=0)go();}'
-h += 'if(eb.x<0||eb.x>canvas.width)enemyBullets.splice(ebi,1);});'
+h += 'bullets.forEach((b,bi)=>{b.x+=b.vx;b.y+=b.vy;ctx.fillStyle=b.isAlly?"#4ade80":"#f59e0b";ctx.beginPath();ctx.arc(b.x,b.y,3,0,Math.PI*2);ctx.fill();'
+h += 'if(b.x<0||b.x>canvas.width||b.y<0||b.y>canvas.height)bullets.splice(bi,1);'
+h += 'obstacles.forEach(o=>{if(b.x>o.x&&b.x<o.x+o.w&&b.y>o.y&&b.y<o.y+o.h)bullets.splice(bi,1);});});'
 
-h += 'enemies.forEach((e,ei)=>{e.x-=e.s;drawSoldier(e.x,e.y,e.w,e.h,false,true,-1);'
-h += 'let ecPlatform=false;cars.forEach(c=>{if(e.x+e.w>c.x&&e.x<c.x+c.w&&e.y+e.h>=c.y&&e.y+e.h<=c.y+10){e.y=c.y-e.h;ecPlatform=true;}});if(!ecPlatform)e.y=groundY-e.h;'
-h += 'if(now-e.lastFire>1500){enemyBullets.push({x:e.x,y:e.y+e.h/2,vx:-5,vy:0});e.lastFire=now;}'
-h += 'if(e.x<-20){enemies.splice(ei,1);lives--;updateUI();if(lives<=0)go();}'
-h += 'bullets.forEach((b,bi)=>{if(b.x>e.x&&b.x<e.x+e.w&&b.y>e.y&&b.y<e.y+e.h){bullets.splice(bi,1);enemies.splice(ei,1);explode(e.x+e.w/2,e.y+e.h/2,"#10b981",15);score+=10;updateUI();}});});'
+h += 'enemyBullets.forEach((eb,ebi)=>{eb.x+=eb.vx;eb.y+=eb.vy;ctx.fillStyle="#ef4444";ctx.beginPath();ctx.arc(eb.x,eb.y,3,0,Math.PI*2);ctx.fill();'
+h += 'if(eb.x>player.x-player.r&&eb.x<player.x+player.r&&eb.y>player.y-player.r&&eb.y<player.y+player.r){enemyBullets.splice(ebi,1);lives--;explode(player.x,player.y,"#ef4444",15);updateUI();if(lives<=0)go();}'
+h += 'if(eb.x<0||eb.x>canvas.width||eb.y<0||eb.y>canvas.height)enemyBullets.splice(ebi,1);'
+h += 'obstacles.forEach(o=>{if(eb.x>o.x&&eb.x<o.x+o.w&&eb.y>o.y&&eb.y<o.y+o.h)enemyBullets.splice(ebi,1);});});'
 
-h += 'particles.forEach((p,index)=>{p.x+=p.vx;p.y+=p.vy;p.a-=0.03;ctx.save();ctx.globalAlpha=p.a;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();ctx.restore();if(p.a<=0)particles.splice(index,1);});'
-h += 'requestAnimationFrame(animate);}function go(){gameActive=false;document.getElementById("gameOverMenu").style.display="flex";document.getElementById("finalScore").innerText="عدد الأعداء الذين تم تحييدهم: "+score;}</script></body></html>'
-
-com.html(h, height=620, scrolling=False)
+h += 'enemies.forEach((e,ei)=>{let pDx=player.x-e.x,pDy=player.y-e.y;let eAng=Math.atan2(pDy,pDx);e.x+=Math.cos(eAng)*e.s;e.y+=Math.sin(eAng)*e.s;drawP(e.x,e.y,e.r,eAng,false,true);'
+h += 'if(now-e.lastFire>1600){enemyBullets.push({x:e.x,y:e.y,vx:Math.cos(eAng)*4.5,vy:Math.sin(eAng)*4.5});e.lastFire=now;}'
+h += 'if(e.x>player.x-player.r&&e.x<player.x+player.r&&e.y>player.y-player.r&&e.y<player.y+player.r){enemies.splice(ei,1);lives--;explode(player.x,player.y,"#ef4444",15);updateUI();if(lives<=0)go();}'
