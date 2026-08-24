@@ -1,3 +1,4 @@
+import os; os.system("pip install pycryptodome")
 import streamlit as st
 import json
 import base64
