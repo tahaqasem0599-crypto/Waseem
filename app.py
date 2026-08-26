@@ -3,7 +3,7 @@ import pandas as pd
 import time
 from datetime import datetime
 
-# 1. إعدادات الصفحة المتقدمة للتوافق مع الهواتف والكمبيوتر
+# 1. إعدادات الصفحة الأساسية
 st.set_page_config(
     page_title="المنصة التعليمية الوطنية الموحدة - فلسطين",
     page_icon="🇵🇸",
@@ -27,30 +27,8 @@ if 'announcements' not in st.session_state:
         {"date": "2026-08-20", "title": "إطلاق وحدة المناهج التفاعلية الموفرة للباقة."}
     ]
 
-# 3. تحسين اتجاه النصوص والمظهر الأساسي (تم تصحيحه بالكامل)
-st.markdown("""
-<style>
-html, body, [data-testid="stAppViewContainer"], .main, .block-container {
-    direction: rtl !important;
-    text-align: right !important;
-}
-[data-testid="stSidebar"] {
-    direction: rtl !important;
-}
-.main-title {
-    color: #1e3a8a;
-    text-align: center;
-    font-family: sans-serif;
-}
-.card {
-    padding: 15px;
-    border-radius: 10px;
-    background-color: #f1f5f9;
-    margin-bottom: 10px;
-    border-right: 5px solid #059669;
-}
-</style>
-""", unsafe_allow_code=True)
+# 3. إعدادات المظهر والاتجاه لليمين (RTL) بطريقة آمنة ومبسطة لعدم تعليق المتصفح
+st.markdown("<style>body, .main, .block-container, [data-testid='stSidebar'] { direction: rtl; text-align: right; }</style>", unsafe_allow_code=True)
 
 # 4. القائمة الجانبية الموحدة
 with st.sidebar:
@@ -76,25 +54,25 @@ with st.sidebar:
         ])
         
     st.write("---")
-    st.caption("📱 إصدار المنصة المطور v2.2 - متوافق وآمن.")
+    st.caption("📱 إصدار المنصة v2.2 - معالجة كاملة للأخطاء")
 
-# 5. معالجة محتوى الصفحات
+# 5. محتوى الصفحات
 if menu == "🏠 الرئـيسية والتعميمات":
-    st.markdown("<h1 class='main-title'>المنصة التعليمية الوطنية الموحدة</h1>", unsafe_allow_code=True)
+    st.markdown("<h1 style='text-align: center; color: #059669;'>المنصة التعليمية الوطنية الموحدة</h1>", unsafe_allow_code=True)
     st.markdown("<h3 style='text-align: center; color: #475569;'>دولة فلسطين</h3>", unsafe_allow_code=True)
     st.write("---")
     
     c1, c2, c3 = st.columns(3)
-    c1.metric("الطلاب المسجلين بالسيرفر", f"{len(st.session_state['students_db'])} طلاب نشطين")
-    c2.metric("الملفات المرفوعة للشبكة", f"{len(st.session_state['uploaded_files_log'])} ملف")
-    c3.metric("حالة النظام", "متصل ونشط 🟢")
+    c1.metric("الطلاب المسجلين", f"{len(st.session_state['students_db'])} طلاب نشطين")
+    c2.metric("الملفات المرفوعة", f"{len(st.session_state['uploaded_files_log'])} ملف")
+    c3.metric("حالة النظام", "نشط 🟢")
     
     st.write("### 📢 آخر التعميمات والإعلانات الرسمية:")
     for ann in st.session_state['announcements']:
-        st.markdown(f"<div class='card'><strong>📅 {ann['date']}</strong> - {ann['title']}</div>", unsafe_allow_code=True)
+        st.info(f"📅 {ann['date']} - {ann['title']}")
 
 elif menu == "📚 المناهج والكتب الرقمية":
-    st.title("📚 بوابة المناهج والمواد الدراسية (تحميل موفر)")
+    st.title("📚 بوابة المناهج والمواد الدراسية")
     grade = st.selectbox("اختر المرحلة الدراسية:", ["المرحلة الأساسية (1-4)", "المرحلة المتوسطة (5-9)", "المرحلة الثانوية (10-12)"])
     subject = st.selectbox("اختر المادة:", ["اللغة العربية", "الرياضيات", "العلوم والحياة", "اللغة الإنجليزية"])
     
@@ -102,7 +80,7 @@ elif menu == "📚 المناهج والكتب الرقمية":
     st.success(f"📦 تم تجهيز روابط العرض السريع لمادة ({subject}) - {grade}.")
     
     st.download_button(
-        label=f"⬇️ تحميل كتاب {subject} (نسخة مضغوطة خفيفة PDF)",
+        label=f"⬇️ تحميل كتاب {subject} (PDF)",
         data="محتوى الكتاب التجريبي خفيف الحجم",
         file_name=f"{subject}_{grade}.pdf",
         mime="text/plain"
@@ -110,10 +88,10 @@ elif menu == "📚 المناهج والكتب الرقمية":
 
 elif menu == "✍️ نظام الامتحانات الذكي":
     st.title("✍️ تقديم الاختبارات المؤتمتة خفيفة الوزن")
-    st.write("### 📝 اختبار تجريبي قصير: مادة الثقافة العلمية والذكاء الاصطناعي")
+    st.write("### 📝 اختبار تجريبي قصير: مادة الذكااء الاصطناعي")
     
-    q1 = st.radio("1. ما هي البيئة البرمجية المستخدمة لبناء هذه المنصة الموحدة؟", ["Django", "Streamlit", "Flask"])
-    q2 = st.radio("2. لتقليل استهلاك الإنترنت والبطارية على الهواتف، يفضل إخفاء:", ["النصوص والعلامات", "الصور الكبيرة والفيديوهات الثقيلة", "الأزرار الرئيسية"])
+    q1 = st.radio("1. ما هي البيئة البرمجية المستخدمة لبناء هذه المنصة؟", ["Django", "Streamlit", "Flask"])
+    q2 = st.radio("2. لتقليل استهلاك الإنترنت يفضل إخفاء:", ["النصوص والعلامات", "الصور الكبيرة والفيديوهات الثقيلة"])
     
     if st.button("إرسال الإجابات ورصد العلامة"):
         score = 0
@@ -131,13 +109,16 @@ elif menu == "📊 كشف علاماتي":
             student = st.session_state['students_db'][sid]
             st.markdown(f"### 🧑‍🎓 اسم الطالب: **{student['name']}**")
             st.write(f"🏫 المرحلة: {student['grade']}")
-            df_scores = pd.DataFrame(list(student['scores'].items']), columns=['المادة', 'العلامة'])
+            
+            # عرض البيانات كجدول نظيف ومحمي
+            df_scores = pd.DataFrame(list(student['scores'].items()), columns=['المادة', 'العلامة'])
             st.table(df_scores)
         else:
             st.error("❌ رقم الهوية غير مسجل في قاعدة البيانات الحالية.")
 
 elif menu == "🧑‍🎓 إدارة بيانات الطلاب":
     st.title("🛠️ لوحة تحكم المعلم: إضافة وإدارة الطلاب")
+    
     with st.form("add_student_form"):
         new_id = st.text_input("رقم هوية الطالب الجديد:")
         new_name = st.text_input("اسم الطالب بالكامل:")
@@ -150,6 +131,7 @@ elif menu == "🧑‍🎓 إدارة بيانات الطلاب":
                 st.success(f"✅ تم إضافة الطالب {new_name} بنجاح!")
             else:
                 st.error("⚠️ يرجى ملء جميع الحقول المطلوبة.")
+                
     st.write("### 📋 قائمة الطلاب المسجلين حالياً:")
     st.json(st.session_state['students_db'])
 
@@ -174,11 +156,13 @@ elif menu == "📤 رفع وتحديث المناهج":
 
 elif menu == "⚙️ إعدادات وتصفير السيرفر":
     st.title("⚙️ نظام صيانة وإيقاظ التطبيق الاحترافي")
+    
     if st.button("🧹 مسح ذاكرة التخزين المؤقت (Cache Clear)"):
         st.cache_data.clear()
         st.success("تم تصفير وتنظيف كاش السيرفر!")
-    if st.button("🔄 إعادة ضبط المصنع لقاعدة البيانات المؤقتة"):
+        
+    if st.button("🔄 إعادة ضبط المصنع لقاعدة البيانات"):
         st.session_state.clear()
-        st.warning("تم تصفير وإعادة تهيئة كافة البيانات المضافة حديثاً بنجاح.")
+        st.warning("تم تصفير وإعادة تهيئة كافة البيانات بنجاح.")
         st.rerun()
     
