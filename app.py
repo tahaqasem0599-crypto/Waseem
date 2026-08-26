@@ -11,7 +11,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. إنشاء قاعدة بيانات داخلية مؤقتة (لحفظ الطلاب والامتحانات والملفات المرفوعة)
+# 2. إنشاء قاعدة بيانات داخلية مؤقتة
 if 'students_db' not in st.session_state:
     st.session_state['students_db'] = {
         "123456789": {"name": "أحمد محمد", "grade": "المرحلة الثانوية (10-12)", "scores": {"اللغة العربية": 95, "الرياضيات": 88}},
@@ -27,68 +27,39 @@ if 'announcements' not in st.session_state:
         {"date": "2026-08-20", "title": "إطلاق وحدة المناهج التفاعلية الموفرة للباقة."}
     ]
 
-# 3. دمج إعدادات الألوان المخصصة (Theme) والـ CSS المطور لسرعة الاستجابة ومنع تعليق الحماية
+# 3. تحسين اتجاه النصوص والمظهر الأساسي (تم تصحيحه بالكامل)
 st.markdown("""
-    <style>
-    /* تطبيق الألوان المطلوبة للمنصة */
-    :root {
-        --primary-color: #059669;
-        --background-color: #ffffff;
-        --secondary-bg-color: #f1f5f9;
-        --text-color: #1e293b;
-    }
-    
-    html, body, [data-testid="stAppViewContainer"] {
-        background-color: var(--background-color) !important;
-        color: var(--text-color) !important;
-        direction: rtl;
-        text-align: right;
-    }
-    
-    /* تحسين القائمة الجانبية لتأخذ اللون الثنائي المطلوب */
-    [data-testid="stSidebar"] {
-        direction: rtl;
-        background-color: var(--secondary-bg-color) !important;
-        border-left: 1px solid #e2e8f0;
-    }
-    
-    /* زر المنصة الرئيسي باللون الأخضر المعتمد */
-    .stButton>button {
-        width: 100%;
-        border-radius: 8px;
-        background-color: var(--primary-color) !important;
-        color: white !important;
-        font-weight: bold;
-    }
-    
-    .main-title {
-        color: #1e3a8a;
-        text-align: center;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    
-    .card {
-        padding: 15px;
-        border-radius: 10px;
-        background-color: #ffffff;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        margin-bottom: 10px;
-        border-right: 5px solid var(--primary-color);
-    }
-    </style>
+<style>
+html, body, [data-testid="stAppViewContainer"], .main, .block-container {
+    direction: rtl !important;
+    text-align: right !important;
+}
+[data-testid="stSidebar"] {
+    direction: rtl !important;
+}
+.main-title {
+    color: #1e3a8a;
+    text-align: center;
+    font-family: sans-serif;
+}
+.card {
+    padding: 15px;
+    border-radius: 10px;
+    background-color: #f1f5f9;
+    margin-bottom: 10px;
+    border-right: 5px solid #059669;
+}
+</style>
 """, unsafe_allow_code=True)
 
-# 4. القائمة الجانبية الموحدة (تنقل ذكي)
+# 4. القائمة الجانبية الموحدة
 with st.sidebar:
     st.markdown("<h2 style='text-align: center;'>🇵🇸 المنصة الموحدة</h2>", unsafe_allow_code=True)
     st.write("---")
     
-    # نظام صلاحيات بسيط للتنقل
     user_role = st.selectbox("👤 نوع المستخدم:", ["طالب / زائر", "معلم / مدير النظام"])
-    
     st.write("---")
     
-    # القوائم بناءً على نوع المستخدم
     if user_role == "طالب / زائر":
         menu = st.radio("📋 القائمة الرئيسية:", [
             "🏠 الرئـيسية والتعميمات", 
@@ -105,7 +76,7 @@ with st.sidebar:
         ])
         
     st.write("---")
-    st.caption("📱 إصدار المنصة المطور v2.1 - مع الألوان المعتمدة وإصلاح حماية CORS المباشرة.")
+    st.caption("📱 إصدار المنصة المطور v2.2 - متوافق وآمن.")
 
 # 5. معالجة محتوى الصفحات
 if menu == "🏠 الرئـيسية والتعميمات":
@@ -113,7 +84,6 @@ if menu == "🏠 الرئـيسية والتعميمات":
     st.markdown("<h3 style='text-align: center; color: #475569;'>دولة فلسطين</h3>", unsafe_allow_code=True)
     st.write("---")
     
-    # إحصائيات حية
     c1, c2, c3 = st.columns(3)
     c1.metric("الطلاب المسجلين بالسيرفر", f"{len(st.session_state['students_db'])} طلاب نشطين")
     c2.metric("الملفات المرفوعة للشبكة", f"{len(st.session_state['uploaded_files_log'])} ملف")
@@ -121,17 +91,12 @@ if menu == "🏠 الرئـيسية والتعميمات":
     
     st.write("### 📢 آخر التعميمات والإعلانات الرسمية:")
     for ann in st.session_state['announcements']:
-        st.markdown(f"""
-        <div class='card'>
-            <strong>📅 {ann['date']}</strong> - {ann['title']}
-        </div>
-        """, unsafe_allow_code=True)
+        st.markdown(f"<div class='card'><strong>📅 {ann['date']}</strong> - {ann['title']}</div>", unsafe_allow_code=True)
 
 elif menu == "📚 المناهج والكتب الرقمية":
     st.title("📚 بوابة المناهج والمواد الدراسية (تحميل موفر)")
-    
     grade = st.selectbox("اختر المرحلة الدراسية:", ["المرحلة الأساسية (1-4)", "المرحلة المتوسطة (5-9)", "المرحلة الثانوية (10-12)"])
-    subject = st.selectbox("اختر المادة:", ["اللغة العربية", "الرياضيات", "العلوم والحياة", "الغة الإنجليزية"])
+    subject = st.selectbox("اختر المادة:", ["اللغة العربية", "الرياضيات", "العلوم والحياة", "اللغة الإنجليزية"])
     
     st.write("---")
     st.success(f"📦 تم تجهيز روابط العرض السريع لمادة ({subject}) - {grade}.")
@@ -154,7 +119,6 @@ elif menu == "✍️ نظام الامتحانات الذكي":
         score = 0
         if q1 == "Streamlit": score += 50
         if q2 == "الصور الكبيرة والفيديوهات الثقيلة": score += 50
-        
         st.balloons()
         st.success(f"🎉 تم رصد إجابتك بنجاح! نتيجتك هي: {score}/100")
 
@@ -167,15 +131,13 @@ elif menu == "📊 كشف علاماتي":
             student = st.session_state['students_db'][sid]
             st.markdown(f"### 🧑‍🎓 اسم الطالب: **{student['name']}**")
             st.write(f"🏫 المرحلة: {student['grade']}")
-            
-            df_scores = pd.DataFrame(list(student['scores'].items()), columns=['المادة', 'العلامة'])
+            df_scores = pd.DataFrame(list(student['scores'].items']), columns=['المادة', 'العلامة'])
             st.table(df_scores)
         else:
             st.error("❌ رقم الهوية غير مسجل في قاعدة البيانات الحالية.")
 
 elif menu == "🧑‍🎓 إدارة بيانات الطلاب":
     st.title("🛠️ لوحة تحكم المعلم: إضافة وإدارة الطلاب")
-    
     with st.form("add_student_form"):
         new_id = st.text_input("رقم هوية الطالب الجديد:")
         new_name = st.text_input("اسم الطالب بالكامل:")
@@ -188,14 +150,12 @@ elif menu == "🧑‍🎓 إدارة بيانات الطلاب":
                 st.success(f"✅ تم إضافة الطالب {new_name} بنجاح!")
             else:
                 st.error("⚠️ يرجى ملء جميع الحقول المطلوبة.")
-                
     st.write("### 📋 قائمة الطلاب المسجلين حالياً:")
     st.json(st.session_state['students_db'])
 
 elif menu == "📤 رفع وتحديث المناهج":
     st.title("📤 مركز رفع الملفات والمناهج والمرفقات")
-    
-    uploaded_file = st.file_uploader("اختر الملف من جهازك (PDF, DOCX, PNG):", type=['pdf', 'docx', 'png', 'jpg'])
+    uploaded_file = st.file_uploader("اختر الملف من جهازك:", type=['pdf', 'docx', 'png', 'jpg'])
     file_description = st.text_input("وصف مختصر للملف المرفوع:")
     
     if st.button("🚀 رفع واعتماد الملف بالمنصة"):
@@ -214,13 +174,11 @@ elif menu == "📤 رفع وتحديث المناهج":
 
 elif menu == "⚙️ إعدادات وتصفير السيرفر":
     st.title("⚙️ نظام صيانة وإيقاظ التطبيق الاحترافي")
-    
     if st.button("🧹 مسح ذاكرة التخزين المؤقت (Cache Clear)"):
         st.cache_data.clear()
         st.success("تم تصفير وتنظيف كاش السيرفر!")
-        
     if st.button("🔄 إعادة ضبط المصنع لقاعدة البيانات المؤقتة"):
         st.session_state.clear()
         st.warning("تم تصفير وإعادة تهيئة كافة البيانات المضافة حديثاً بنجاح.")
         st.rerun()
-                      
+    
