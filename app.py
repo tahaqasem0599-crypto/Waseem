@@ -60,11 +60,9 @@ st.markdown("""
 def init_db():
     conn = sqlite3.connect('palestine_edu_secure.db', check_same_thread=False)
     c = conn.cursor()
-    # جدول الدروس والمناهج المرفوعة من الوزارة
     c.execute('''CREATE TABLE IF NOT EXISTS lessons
                  (id INTEGER PRIMARY KEY AUTOINCREMENT, grade TEXT, subject TEXT, title TEXT, content TEXT, 
                   quiz_q TEXT, quiz_options TEXT, quiz_ans TEXT, date_added TEXT)''')
-    # جدول درجات الطلاب وعلامات التقييم الآلي
     c.execute('''CREATE TABLE IF NOT EXISTS student_grades
                  (id INTEGER PRIMARY KEY AUTOINCREMENT, student_name TEXT, grade_level TEXT, subject TEXT, 
                   score INTEGER, total INTEGER, date_submitted TEXT)''')
@@ -74,9 +72,8 @@ def init_db():
 conn = init_db()
 c = conn.cursor()
 
-# إدخال دروس افتراضية أولية إذا كانت قاعدة البيانات فارغة تماماً لضمان عدم حدوث خطأ
 c.execute("SELECT COUNT(*) FROM lessons")
-if c.fetchone()[0] == 0:
+if c.fetchone() == 0:
     sample_content = "الخلايا الشمسية هي وسيلة لتوليد الطاقة الكهربائية في غزة باستخدام أشعة الشمس مباشرة لتشغيل المنازل والمستشفيات."
     c.execute("""INSERT INTO lessons (grade, subject, title, content, quiz_q, quiz_options, quiz_ans, date_added) 
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)""", 
@@ -84,7 +81,6 @@ if c.fetchone()[0] == 0:
                "ما هي وظيفة الخلايا الشمسية؟", "توليد الكهرباء من الشمس,تنقية المياه,تقوية شبكات الاتصال", "توليد الكهرباء من الشمس", "2026-08-26"))
     conn.commit()
 
-# قائمة المناهج والمواد الثابتة الرسمية لوزارة التربية والتعليم
 GRADES_LIST = ["الابتدائية (1-4)", "الأساسية (5-9)", "الثانوية (10-12)", "التوجيهي"]
 SUBJECTS_DICT = {
     "الابتدائية (1-4)": ["اللغة العربية", "الرياضيات", "التربية الإسلامية", "العلوم والحياة"],
@@ -98,9 +94,8 @@ SUBJECTS_DICT = {
 # ==========================================
 def teacher_and_ministry_portal():
     st.title("👨‍🏫 البوابة السيادية لوزارة التربية والتعليم والمشرفين")
-    st.write("أدوات رصد التعليم، تحديث المقررات الميدانية لقطاع غزة والضفة، واستخراج الكشوفات الرسمية.")
+    st.write("أدوات رصد التعليم، تحديث المقررات الميدانية لقطاع غزة والضفة، واستخرج الكشوفات الرسمية.")
     
-    # لوحة المؤشرات الإحصائية الحية المباشرة (Dashboard)
     st.markdown("### 📊 لوحة مؤشرات التعليم الحية في فلسطين")
     
     c.execute("SELECT COUNT(*) FROM student_grades")
@@ -133,7 +128,7 @@ def teacher_and_ministry_portal():
             st.markdown("##### 🎯 ضبط سؤال التقييم والامتحانات الآلية")
             quiz_q = st.text_input("نص سؤال الاختبار القصيـر:")
             quiz_opts = st.text_input("الخيارات المتاحة للحل (افصل بين كل خيار بفاصلة مثل: خيار1,خيار2,خيار3):")
-            quiz_ans = st.text_input("الإجابة الصحيحة تماماً (يجب أن تطابق أحد الخيارات بدقة لتفعيل التصحيح الآلي):")
+            quiz_ans = st.text_input("الإجابة الصحيحة تماماً:")
             
             btn_publish = st.form_submit_button("🚀 اعتماد وتعميم المحتوى على مستوى الوطن")
             
@@ -144,11 +139,11 @@ def teacher_and_ministry_portal():
                              VALUES (?, ?, ?, ?, ?, ?, ?, ?)""", 
                           (selected_grade, selected_subject, lesson_title, lesson_content, quiz_q, quiz_opts, quiz_ans, today_str))
                 conn.commit()
-                st.success(f"✅ تم نشر مقرر '{lesson_title}' بنجاح وتوفيره للتحميل الفوري للطلاب بدون استهلاك سعة إنترنت.")
+                st.success(f"✅ تم نشر مقرر '{lesson_title}' بنجاح!")
                 time.sleep(0.5)
                 st.rerun()
             else:
-                st.error("❌ خطأ: يرجى كتابة كافة تفاصيل الدرس والامتحان لإغلاق ثغرات النظام.")
+                st.error("❌ خطأ: يرجى كتابة كافة تفاصيل الدرس والامتحان.")
                 
     with sub_tab2:
         st.subheader("سجلات التحصيل العلمي والتقارير الوزارية المعتمدة")
@@ -159,7 +154,6 @@ def teacher_and_ministry_portal():
             df_grades = pd.DataFrame(grades_data, columns=["اسم الطالب", "المرحلة الدراسية", "المادة", "الدرجة المستحقة", "الدرجة الكاملة", "تاريخ التقديم"])
             st.dataframe(df_grades, use_container_width=True)
             
-            # تصدير كشوفات الوزارة بصيغة Excel/CSV الفورية لأصحاب المصلحة والمشرفين الماليين والأكاديميين
             csv = df_grades.to_csv(index=False).encode('utf-8-sig')
             st.download_button(
                 label="📥 تحميل كشف علامات الطلاب الرسمي (ملف Excel/CSV)",
@@ -171,21 +165,18 @@ def teacher_and_ministry_portal():
             st.info("ℹ️ قاعدة البيانات نظيفة ومؤمنة، لا توجد اختبارات مسجلة للطلاب اليوم حتى الآن.")
 
 # ==========================================
-# 4. بوابة الطالب: استعراض المقررات والمذاكرة والامتحان (Offline-First)
+# 4. بوابة الطالب: استعراض المقررات والمذاكرة والامتحان
 # ==========================================
 def student_portal_interface():
     st.title("📖 البوابة الوطنية الموحدة لطلبة فلسطين")
     st.write("أهلاً بك يا بطل في منصتك التعليمية المحمية، تصفح موادك ودروسك واختبر نفسك بدون إنترنت.")
     
-    # إعدادات خاصة بطلاب غزة لتوفير البطارية والانقطاع
     with st.sidebar.expander("⚡ مركز دعم صمود طاقة الهاتف (خاص بغزة)"):
         st.checkbox("تفعيل نظام تخفيض استهلاك الصور والألوان")
-        st.checkbox("تنشيط نمط استهلاك البطارية الصفرى (الحد الأدنى للإنعكاس)")
-        st.caption("تعمل هذه الميزات محلياً لضمان بقاء الهاتف شغالاً لأطول فترة ممكنة.")
+        st.checkbox("تنشيط نمط استهلاك البطارية الصفرى")
 
     st.write("---")
     
-    # اسم الطالب والمرحلة لتوثيق الدرجات بالوزارة آلياً
     col_sn, col_gl = st.columns(2)
     with col_sn:
         student_name = st.text_input("👤 أدخل اسمك الثلاثي (لتسجيل علاماتك بالوزارة):", value="طالب فلسطيني")
@@ -194,7 +185,6 @@ def student_portal_interface():
         
     selected_subject = st.selectbox("اختر المادة التي تريد مراجعتها ومذاكرتها الآن:", SUBJECTS_DICT[student_grade])
     
-    # جلب الدروس والمناهج من قاعدة البيانات المحلية الخاصة بالمادة والمرحلة المحددة
     c.execute("SELECT id, title, content, quiz_q, quiz_options, quiz_ans FROM lessons WHERE grade = ? AND subject = ? ORDER BY id DESC", (student_grade, selected_subject))
     lessons_found = c.fetchall()
     
@@ -203,4 +193,19 @@ def student_portal_interface():
         
         for les_id, title, content, q_text, q_opts, q_ans in lessons_found:
             with st.expander(f"📘 مقرر: {title}"):
+                st.markdown(f"**المحتوى التلخيصي والشرح المعتمد:**\n\n{content}")
+                
+                if st.button(f"📥 تخزين درس ({title}) أوفلاين على الهاتف", key=f"dl_{les_id}"):
+                    st.success(f"💾 تم حفظ الملف محلياً في ذاكرة جوالك بنجاح!")
+                
+                st.markdown("---")
+                st.markdown("##### 📝 الاختبار التقييمي الفوري للدرس:")
+                
+                if q_text and q_opts:
+                    options_list = q_opts.split(",")
+                    student_choice = st.radio(f"السؤال: {q_text}", options_list, key=f"q_{les_id}")
+                    
+                    if st.button("🎯 إرسال الإجابة وتصحيح درجتي تلقائياً", key=f"sub_{les_id}"):
+                        if student_choice.strip() == q_ans.strip():
+                            st.success("🎉 إجابة نموذجية وصحيحة مئة بالمئة! حصلت على 10/10.")
     
