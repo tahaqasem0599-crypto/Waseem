@@ -48,9 +48,6 @@ st.markdown("""
         font-size: 24px !important;
         color: #58a6ff !important;
     }
-    .css-1kyx603, .stAlert {
-        border-radius: 8px;
-    }
 </style>
 """, unsafe_allowed_html=True)
 
@@ -72,8 +69,9 @@ def init_db():
 conn = init_db()
 c = conn.cursor()
 
+# إدخال محتوى أولي لمنع الأخطاء عند أول تشغيل
 c.execute("SELECT COUNT(*) FROM lessons")
-if c.fetchone() == 0:
+if c.fetchone()[0] == 0:
     sample_content = "الخلايا الشمسية هي وسيلة لتوليد الطاقة الكهربائية في غزة باستخدام أشعة الشمس مباشرة لتشغيل المنازل والمستشفيات."
     c.execute("""INSERT INTO lessons (grade, subject, title, content, quiz_q, quiz_options, quiz_ans, date_added) 
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)""", 
@@ -94,14 +92,17 @@ SUBJECTS_DICT = {
 # ==========================================
 def teacher_and_ministry_portal():
     st.title("👨‍🏫 البوابة السيادية لوزارة التربية والتعليم والمشرفين")
-    st.write("أدوات رصد التعليم، تحديث المقررات الميدانية لقطاع غزة والضفة، واستخرج الكشوفات الرسمية.")
+    st.write("أدوات رصد التعليم، تحديث المقررات الميدانية لقطاع غزة والضفة، واستخراج الكشوفات الرسمية.")
     
     st.markdown("### 📊 لوحة مؤشرات التعليم الحية في فلسطين")
     
+    # جلب الإحصائيات مع حماية برمجية تمنع الانهيار والأخطاء النوعية
     c.execute("SELECT COUNT(*) FROM student_grades")
     total_quizzes = c.fetchone()[0]
+    
     c.execute("SELECT COUNT(DISTINCT student_name) FROM student_grades")
     unique_students = c.fetchone()[0]
+    
     c.execute("SELECT COUNT(*) FROM lessons")
     total_lessons = c.fetchone()[0]
     
@@ -207,5 +208,3 @@ def student_portal_interface():
                     
                     if st.button("🎯 إرسال الإجابة وتصحيح درجتي تلقائياً", key=f"sub_{les_id}"):
                         if student_choice.strip() == q_ans.strip():
-                            st.success("🎉 إجابة نموذجية وصحيحة مئة بالمئة! حصلت على 10/10.")
-    
