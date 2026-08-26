@@ -1,168 +1,95 @@
 import streamlit as st
 import pandas as pd
-import time
 from datetime import datetime
 
-# 1. إعدادات الصفحة الأساسية
+# 1. إعدادات الصفحة
 st.set_page_config(
-    page_title="المنصة التعليمية الوطنية الموحدة - فلسطين",
+    page_title="المنصة التعليمية",
     page_icon="🇵🇸",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# 2. إنشاء قاعدة بيانات داخلية مؤقتة
+# 2. قاعدة البيانات الداخلية الآمنة
 if 'students_db' not in st.session_state:
     st.session_state['students_db'] = {
-        "123456789": {"name": "أحمد محمد", "grade": "المرحلة الثانوية (10-12)", "scores": {"اللغة العربية": 95, "الرياضيات": 88}},
-        "987654321": {"name": "سارة أحمد", "grade": "المرحلة المتوسطة (5-9)", "scores": {"العلوم": 92}}
+        "123456789": {"name": "Ahmed", "grade": "High School", "arabic": 95, "math": 88},
+        "987654321": {"name": "Sara", "grade": "Middle School", "science": 92}
     }
 
 if 'uploaded_files_log' not in st.session_state:
     st.session_state['uploaded_files_log'] = []
 
-if 'announcements' not in st.session_state:
-    st.session_state['announcements'] = [
-        {"date": "2026-08-26", "title": "بدء التسجيل للامتحانات الاستدراكية الموحدة."},
-        {"date": "2026-08-20", "title": "إطلاق وحدة المناهج التفاعلية الموفرة للباقة."}
-    ]
-
-# 3. إعدادات المظهر والاتجاه لليمين (RTL) بطريقة آمنة ومبسطة لعدم تعليق المتصفح
+# 3. تعديل الاتجاه للغة العربية بدون نصوص طويلة معقدة
 st.markdown("<style>body, .main, .block-container, [data-testid='stSidebar'] { direction: rtl; text-align: right; }</style>", unsafe_allow_code=True)
 
-# 4. القائمة الجانبية الموحدة
+# 4. القائمة الجانبية
 with st.sidebar:
     st.markdown("<h2 style='text-align: center;'>🇵🇸 المنصة الموحدة</h2>", unsafe_allow_code=True)
     st.write("---")
-    
     user_role = st.selectbox("👤 نوع المستخدم:", ["طالب / زائر", "معلم / مدير النظام"])
     st.write("---")
     
     if user_role == "طالب / زائر":
-        menu = st.radio("📋 القائمة الرئيسية:", [
-            "🏠 الرئـيسية والتعميمات", 
-            "📚 المناهج والكتب الرقمية", 
-            "✍️ نظام الامتحانات الذكي",
-            "📊 كشف علاماتي"
-        ])
+        menu = st.radio("📋 القائمة الرئيسية:", ["الصفحة الرئيسية", "المناهج والكتب", "نظام الامتحانات", "كشف العلامات"])
     else:
-        menu = st.radio("🛠️ لوحة تحكم الإدارة:", [
-            "🏠 الرئـيسية والتعميمات",
-            "🧑‍🎓 إدارة بيانات الطلاب", 
-            "📤 رفع وتحديث المناهج", 
-            "⚙️ إعدادات وتصفير السيرفر"
-        ])
-        
-    st.write("---")
-    st.caption("📱 إصدار المنصة v2.2 - معالجة كاملة للأخطاء")
+        menu = st.radio("🛠️ لوحة التحكم:", ["الصفحة الرئيسية", "إدارة الطلاب", "رفع المناهج", "صيانة السيرفر"])
 
-# 5. محتوى الصفحات
-if menu == "🏠 الرئـيسية والتعميمات":
+# 5. تشغيل الصفحات بناءً على الاختيار
+if menu == "الصفحة الرئيسية":
     st.markdown("<h1 style='text-align: center; color: #059669;'>المنصة التعليمية الوطنية الموحدة</h1>", unsafe_allow_code=True)
-    st.markdown("<h3 style='text-align: center; color: #475569;'>دولة فلسطين</h3>", unsafe_allow_code=True)
+    st.markdown("<h3 style='text-align: center;'>دولة فلسطين</h3>", unsafe_allow_code=True)
     st.write("---")
-    
-    c1, c2, c3 = st.columns(3)
-    c1.metric("الطلاب المسجلين", f"{len(st.session_state['students_db'])} طلاب نشطين")
-    c2.metric("الملفات المرفوعة", f"{len(st.session_state['uploaded_files_log'])} ملف")
-    c3.metric("حالة النظام", "نشط 🟢")
-    
-    st.write("### 📢 آخر التعميمات والإعلانات الرسمية:")
-    for ann in st.session_state['announcements']:
-        st.info(f"📅 {ann['date']} - {ann['title']}")
+    st.info("📢 أهلاً بك في المنصة الموحدة الموفرة لبيانات الإنترنت والبطارية.")
 
-elif menu == "📚 المناهج والكتب الرقمية":
+elif menu == "المناهج والكتب":
     st.title("📚 بوابة المناهج والمواد الدراسية")
-    grade = st.selectbox("اختر المرحلة الدراسية:", ["المرحلة الأساسية (1-4)", "المرحلة المتوسطة (5-9)", "المرحلة الثانوية (10-12)"])
-    subject = st.selectbox("اختر المادة:", ["اللغة العربية", "الرياضيات", "العلوم والحياة", "اللغة الإنجليزية"])
-    
-    st.write("---")
-    st.success(f"📦 تم تجهيز روابط العرض السريع لمادة ({subject}) - {grade}.")
-    
-    st.download_button(
-        label=f"⬇️ تحميل كتاب {subject} (PDF)",
-        data="محتوى الكتاب التجريبي خفيف الحجم",
-        file_name=f"{subject}_{grade}.pdf",
-        mime="text/plain"
-    )
+    grade = st.selectbox("اختر المرحلة:", ["الأساسية", "المتوسطة", "الثانوية"])
+    subject = st.selectbox("اختر المادة:", ["اللغة العربية", "الرياضيات", "العلوم", "اللغة الإنجليزية"])
+    st.success(f"تم تجهيز روابط العرض لمادة {subject} - مرحلة {grade}.")
 
-elif menu == "✍️ نظام الامتحانات الذكي":
-    st.title("✍️ تقديم الاختبارات المؤتمتة خفيفة الوزن")
-    st.write("### 📝 اختبار تجريبي قصير: مادة الذكااء الاصطناعي")
-    
-    q1 = st.radio("1. ما هي البيئة البرمجية المستخدمة لبناء هذه المنصة؟", ["Django", "Streamlit", "Flask"])
-    q2 = st.radio("2. لتقليل استهلاك الإنترنت يفضل إخفاء:", ["النصوص والعلامات", "الصور الكبيرة والفيديوهات الثقيلة"])
-    
-    if st.button("إرسال الإجابات ورصد العلامة"):
-        score = 0
-        if q1 == "Streamlit": score += 50
-        if q2 == "الصور الكبيرة والفيديوهات الثقيلة": score += 50
-        st.balloons()
-        st.success(f"🎉 تم رصد إجابتك بنجاح! نتيجتك هي: {score}/100")
+elif menu == "نظام الامتحانات":
+    st.title("✍️ نظام الامتحانات المؤتمتة")
+    q1 = st.radio("1. ما هي البيئة البرمجية المستخدمة هنا؟", ["Django", "Streamlit", "Flask"])
+    if st.button("إرسال الإجابة"):
+        if q1 == "Streamlit":
+            st.success("إجابة صحيحة! 🎉 نتيجتك: 100/100")
+        else:
+            st.error("إجابة خاطئة، حاول مجدداً.")
 
-elif menu == "📊 كشف علاماتي":
-    st.title("📊 نظام الاستعلام عن العلامات الموحد")
-    sid = st.text_input("أدخل رقم هويتك الشخصي (مثال للتجربة: 123456789):")
-    
-    if st.button("بحث واستخراج الشهادة"):
+elif menu == "كشف العلامات":
+    st.title("📊 نظام الاستعلام عن العلامات")
+    sid = st.text_input("أدخل رقم الهوية للتجربة (123456789):")
+    if st.button("عرض الشهادة"):
         if sid in st.session_state['students_db']:
             student = st.session_state['students_db'][sid]
-            st.markdown(f"### 🧑‍🎓 اسم الطالب: **{student['name']}**")
-            st.write(f"🏫 المرحلة: {student['grade']}")
-            
-            # عرض البيانات كجدول نظيف ومحمي
-            df_scores = pd.DataFrame(list(student['scores'].items()), columns=['المادة', 'العلامة'])
-            st.table(df_scores)
+            st.write(f"🧑‍🎓 الطالب: {student['name']} | المرحلة: {student['grade']}")
+            st.success("تم جلب البيانات بنجاح من قاعدة البيانات.")
         else:
-            st.error("❌ رقم الهوية غير مسجل في قاعدة البيانات الحالية.")
+            st.error("رقم الهوية غير مسجل.")
 
-elif menu == "🧑‍🎓 إدارة بيانات الطلاب":
-    st.title("🛠️ لوحة تحكم المعلم: إضافة وإدارة الطلاب")
-    
-    with st.form("add_student_form"):
-        new_id = st.text_input("رقم هوية الطالب الجديد:")
-        new_name = st.text_input("اسم الطالب بالكامل:")
-        new_grade = st.selectbox("المرحلة:", ["المرحلة الأساسية (1-4)", "المرحلة المتوسطة (5-9)", "المرحلة الثانوية (10-12)"])
-        submitted = st.form_submit_button("➕ تسجيل الطالب في النظام")
-        
-        if submitted:
+elif menu == "إدارة الطلاب":
+    st.title("🛠️ إضافة طلاب جدد")
+    with st.form("add_form"):
+        new_id = st.text_input("رقم الهوية:")
+        new_name = st.text_input("الاسم بالكامل:")
+        if st.form_submit_button("تسجيل الطالب"):
             if new_id and new_name:
-                st.session_state['students_db'][new_id] = {"name": new_name, "grade": new_grade, "scores": {}}
-                st.success(f"✅ تم إضافة الطالب {new_name} بنجاح!")
+                st.session_state['students_db'][new_id] = {"name": new_name, "grade": "مُسجل حديثاً"}
+                st.success("تم التسجيل بنجاح!")
             else:
-                st.error("⚠️ يرجى ملء جميع الحقول المطلوبة.")
-                
-    st.write("### 📋 قائمة الطلاب المسجلين حالياً:")
-    st.json(st.session_state['students_db'])
+                st.error("يرجى تعبئة الحقول.")
 
-elif menu == "📤 رفع وتحديث المناهج":
-    st.title("📤 مركز رفع الملفات والمناهج والمرفقات")
-    uploaded_file = st.file_uploader("اختر الملف من جهازك:", type=['pdf', 'docx', 'png', 'jpg'])
-    file_description = st.text_input("وصف مختصر للملف المرفوع:")
-    
-    if st.button("🚀 رفع واعتماد الملف بالمنصة"):
-        if uploaded_file is not None and file_description:
-            file_info = {
-                "name": uploaded_file.name,
-                "desc": file_description,
-                "time": datetime.now().strftime("%Y-%m-%d %H:%M")
-            }
-            st.session_state['uploaded_files_log'].append(file_info)
-            st.success(f"✅ تم رفع وتعميم ملف '{uploaded_file.name}' بنجاح!")
-            
-    if st.session_state['uploaded_files_log']:
-        st.write("### 🗂️ السجل الحالي للملفات المرفوعة:")
-        st.dataframe(pd.DataFrame(st.session_state['uploaded_files_log']))
+elif menu == "رفع المناهج":
+    st.title("📤 مركز رفع المناهج والملفات")
+    uploaded_file = st.file_uploader("اختر ملف:")
+    if st.button("اعتماد ورفع الملف"):
+        if uploaded_file:
+            st.session_state['uploaded_files_log'].append(uploaded_file.name)
+            st.success("تم الرفع بنجاح!")
 
-elif menu == "⚙️ إعدادات وتصفير السيرفر":
-    st.title("⚙️ نظام صيانة وإيقاظ التطبيق الاحترافي")
-    
-    if st.button("🧹 مسح ذاكرة التخزين المؤقت (Cache Clear)"):
+elif menu == "صيانة السيرفر":
+    st.title("⚙️ صيانة النظام")
+    if st.button("تصفير الذاكرة المؤقتة"):
         st.cache_data.clear()
-        st.success("تم تصفير وتنظيف كاش السيرفر!")
-        
-    if st.button("🔄 إعادة ضبط المصنع لقاعدة البيانات"):
-        st.session_state.clear()
-        st.warning("تم تصفير وإعادة تهيئة كافة البيانات بنجاح.")
-        st.rerun()
-    
+        st.success("تم تنظيف السيرفر كلياً!")
