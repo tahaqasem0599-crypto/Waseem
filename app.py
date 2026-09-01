@@ -1,5 +1,7 @@
 import streamlit as st
 import datetime
+import json
+import os
 
 # إعدادات الصفحة الرسمية للتطبيق بألوان تليجرام
 st.set_page_config(page_title="تليجرام المطور", page_icon="💬", layout="centered")
@@ -22,12 +24,29 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# تهيئة الذاكرة المؤقتة لتخزين الرسائل
-if "messages" not in st.session_state:
-    st.session_state.messages = [
-        {"sender": "أحمد الدلو", "text": "مرحباً يا وسيم، كيف تسير هندسة التطبيق العالمي؟", "time": "4:28 م"},
-        {"sender": "وسيم نائل", "text": "أهلاً أحمد، الكود جاهز ومرفوع الآن على جيت هاب ويعمل بكفاءة.", "time": "4:29 م"}
+# ملف قاعدة البيانات المصغر لحفظ الرسائل بشكل دائم داخل السيرفر
+DB_FILE = "chat_db.json"
+
+def load_messages():
+    if os.path.exists(DB_FILE):
+        try:
+            with open(DB_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except:
+            return []
+    return [
+        {"sender": "أحمد الدلو", "text": "مرحباً يا وسيم، كيف تسير هندسة التطبيق العالمي؟", "time": "04:28 م"},
+        {"sender": "وسيم نائل", "text": "أهلاً أحمد، الكود جاهز ومرفوع الآن على جيت هاب ويعمل بكفاءة.", "time": "04:29 م"}
     ]
+
+def save_message(sender, text, time):
+    messages = load_messages()
+    messages.append({"sender": sender, "text": text, "time": time})
+    with open(DB_FILE, "w", encoding="utf-8") as f:
+        json.dump(messages, f, ensure_ascii=False, indent=4)
+
+# تحميل الرسائل المحفوظة في قاعدة البيانات الدائمة
+all_messages = load_messages()
 
 # الشريط العلوي للتطبيق (تليجرام)
 st.markdown("<h2 style='text-align: center; color: #517DA2; font-weight: bold;'>💬 تليجرام المطور</h2>", unsafe_allow_html=True)
@@ -44,29 +63,27 @@ if "username" not in st.session_state or st.session_state.username == "":
         st.session_state.username = name_input.strip()
         st.rerun()
 else:
-    # إذا كان مسجل الدخول، يعرض المحادثة والدردشة
-    st.write(f"👤 متصل الآن باسم: **{st.session_state.username}**")
-    
-    # زر لتغيير الاسم أو تسجيل الخروج
-    if st.button("تسجيل الخروج 🚪"):
-        st.session_state.username = ""
-        st.rerun()
+    # عرض الاسم الحالي وزر تحديث الشات لقراءة رسائل الآخرين الجدد
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.write(f"👤 متصل الآن باسم: **{st.session_state.username}**")
+    with col2:
+        if st.button("تحديث 🔄"):
+            st.rerun()
         
     st.write("---")
 
-    # عرض المحادثة داخل فقاعات تليجرام المنسقة
-    for msg in st.session_state.messages:
+    # عرض المحادثة من قاعدة البيانات الدائمة
+    for msg in all_messages:
         if msg["sender"] == st.session_state.username:
-            # رسائلي تظهر باللون الأخضر على اليمين
             st.markdown(f'<div class="chat-bubble-me">{msg["text"]}<br><span class="time-text">{msg["time"]}</span></div>', unsafe_allow_html=True)
         else:
-            # رسائل الآخرين تظهر باللون الأبيض على اليسار مع إظهار أسمائهم
             st.markdown(f'<div class="chat-bubble-other"><b>{msg["sender"]}:</b><br>{msg["text"]}<br><span class="time-text">{msg["time"]}</span></div>', unsafe_allow_html=True)
 
     st.markdown("<div style='clear: both;'></div>", unsafe_allow_html=True)
     st.write("---")
 
-    # حقل إدخال الرسائل الجديد أسفل الشاشة
+    # حقل إدخال الرسائل الجديد
     with st.container():
         user_input = st.text_input("اكتب رسالة...", key="chat_input", placeholder="أرسل رسالة إلى القناة الحية...")
         send_button = st.button("إرسال 🚀")
@@ -74,12 +91,7 @@ else:
         if send_button and user_input.strip() != "":
             time_now = datetime.datetime.now().strftime("%I:%M %p").replace("AM", "ص").replace("PM", "م")
             
-            # إضافة الرسالة الجديدة باسم المستخدم الحالي
-            st.session_state.messages.append({
-                "sender": st.session_state.username,
-                "text": user_input,
-                "time": time_now
-            })
-            # إعادة تنشيط الصفحة لرؤية الرسالة فوراً
+            # حفظ الرسالة في السيرفر الدائم ليراها أي مستخدم آخر فوراً
+            save_message(st.session_state.username, user_input.strip(), time_now)
             st.rerun()
     
