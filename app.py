@@ -169,7 +169,7 @@ else:
     c.execute("SELECT username, content FROM messages WHERE room = ? AND is_pinned = 1 ORDER BY id DESC LIMIT 1", (current_room,))
     pinned = c.fetchone()
     if pinned:
-        st.markdown(f"<div style='background-color: #E0F7FA; padding: 10px; border-radius: 8px; border-right: 5px solid #00acc1; margin-bottom: 10px;'>📌 <b>مثبتة بقلم {pinned[0]}:</b> {pinned[1]}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='background-color: #E0F7FA; padding: 10px; border-radius: 8px; border-right: 5px solid #00acc1; margin-bottom: 10px;'>📌 <b>مثبتة:</b> {pinned[1]}</div>", unsafe_allow_html=True)
 
     # نافذة عرض أرشيف الشات
     chat_container = st.container(height=400, border=True)
