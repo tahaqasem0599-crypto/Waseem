@@ -57,9 +57,9 @@ def trigger_bot_response(room, user_msg):
     else:
         bot_reply = "🤖 رسالتك مستلمة ومحفوظة بأمان في السيرفر."
 
+    c = conn.cursor()
     if bot_reply:
         t_now = datetime.now().strftime("%I:%M %p")
-        c = conn.cursor()
         c.execute("INSERT INTO messages (room, phone, username, msg_type, content, timestamp) VALUES (?, 'bot', 'Telegram_Bot 🤖', 'text', ?, ?)",
                   (room, bot_reply, t_now))
         conn.commit()
@@ -114,6 +114,8 @@ else:
     if 'reply_msg' not in st.session_state:
         st.session_state.reply_msg = None
 
+    c = conn.cursor()
+
     with st.sidebar:
         st.write(f"<h3>👤 {st.session_state.username}</h3>", unsafe_allow_html=True)
         st.caption(f"📱 {user_phone} | رتبة: {user_role.upper()}")
@@ -145,7 +147,7 @@ else:
         if all_rooms_db:
             room_names = [r[0] for r in all_rooms_db]
             current_room = st.radio("اختر المحادثة:", room_names, label_visibility="collapsed")
-            is_news_channel = [r[1] for r in all_rooms_db if r[0] == current_room][0] == "قناة"
+            is_news_channel = next((r[1] == "قناة" for r in all_rooms_db if r[0] == current_room), False)
         else:
             current_room = "📢 أخبار عاجلة دولية"
             is_news_channel = True
@@ -167,7 +169,7 @@ else:
     c.execute("SELECT username, content FROM messages WHERE room = ? AND is_pinned = 1 ORDER BY id DESC LIMIT 1", (current_room,))
     pinned = c.fetchone()
     if pinned:
-        st.markdown(f"<div style='background-color: #E0F7FA; padding: 10px; border-radius: 8px; border-right: 5px solid #00acc1; margin-bottom: 10px;'>📌 <b>مثبتة:</b> {pinned[1]}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='background-color: #E0F7FA; padding: 10px; border-radius: 8px; border-right: 5px solid #00acc1; margin-bottom: 10px;'>📌 <b>مثبتة بقلم {pinned[0]}:</b> {pinned[1]}</div>", unsafe_allow_html=True)
 
     # نافذة عرض أرشيف الشات
     chat_container = st.container(height=400, border=True)
@@ -196,7 +198,4 @@ else:
             elif msg_type == "sticker":
                 st.markdown(f"<p style='font-size:50px; margin:0;'>{content}</p>", unsafe_allow_html=True)
             elif msg_type == "image":
-                st.image(content, width=240)
-            st.markdown("</div>")
-
     
