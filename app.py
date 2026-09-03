@@ -3,29 +3,18 @@ import sqlite3
 import os
 import hashlib
 import time
-import datetime
 from datetime import datetime
 
-# --- إعدادات الواجهة الاحترافية الرسمية وتصميم الهواتف ---
+# --- إعدادات الواجهة الاحترافية الرسمية وتصميم الصفحة ---
 st.set_page_config(page_title="تليجرام بريميوم الأصلي", page_icon="✈️", layout="centered")
 
-# هندسة وتصميم واجهة تليجرام الأصلي بالكامل عبر CSS
+# دمج تصميم الـ CSS الخاص بتليجرام
 st.markdown("""
 <style>
-    /* إلغاء الفراغات العلوية الافتراضية لتبدو كشاشة هاتف */
-    .block-container { padding-top: 0rem; padding-bottom: 1rem; }
-    
-    /* خلفية تليجرام الرسمية */
+    .block-container { padding-top: 1rem; }
     .stApp {
         background-color: #E7EBF0;
-        background-image: url('https://githubusercontent.com');
         background-attachment: fixed;
-        background-size: cover;
-    }
-    
-    /* تنسيق أزرار التنقل والقوائم */
-    .stButton>button {
-        border-radius: 20px !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -38,7 +27,7 @@ def init_db():
     c.execute('''CREATE TABLE IF NOT EXISTS users (
                     phone TEXT PRIMARY KEY, username TEXT, password TEXT, 
                     bio TEXT, avatar TEXT, status TEXT, role TEXT, is_banned INTEGER DEFAULT 0)''')
-    # 2. جدول الرسائل (مع دعم الرد، التثبيت والتدمير الذاتي)
+    # 2. جدول الرسائل
     c.execute('''CREATE TABLE IF NOT EXISTS messages (
                     id INTEGER PRIMARY KEY AUTOINCREMENT, room TEXT, phone TEXT, 
                     username TEXT, msg_type TEXT, content TEXT, timestamp TEXT, 
@@ -93,7 +82,7 @@ def trigger_bot_response(room, user_msg):
     if "مرحبا" in msg_lower or "سلام" in msg_lower:
         bot_reply = "🏆 أهلاً بك في تليجرام بريميوم الفاخر! أنا البوت الرسمي لخدمتك."
     elif "وقت" in msg_lower or "ساعة" in msg_lower:
-        bot_reply = f"⏰ الوقت والنبض الحالي: {datetime.now().strftime('%I:%M %p')}"
+        bot_reply = f"⏰ الوقت والنبض الحالي: {datetime.now().strftime('%I:%M:%p')}"
     elif "تصويت" in msg_lower or "استطلاع" in msg_lower:
         bot_reply = "📊 يمكنك الآن إنشاء استطلاعات رأي حقيقية باستخدام اللوحة المخصصة بالأسفل!"
     else:
@@ -168,7 +157,7 @@ else:
         st.write(f"<h3>{u_info[2]} {u_info[0]}</h3>", unsafe_allow_html=True)
         st.caption(f"📱 {user_phone} | رتبة الحساب: {user_role.upper()}")
         
-        # 1. محرك البحث الشامل (Global Search)
+        # 1. محرك البحث الشامل
         st.markdown("---")
         global_search = st.text_input("🔍 بحث شامل عن غرف وقنوات:", placeholder="اكتب اسم الغرفة...")
         
@@ -187,7 +176,7 @@ else:
                     except sqlite3.IntegrityError:
                         st.error("الاسم مستخدم مسبقاً.")
 
-        # جلب وتصفية الغرف حسب البحث الشامل
+        # جلب وتصفية الغرف
         st.markdown("---")
         st.subheader("💬 قائمة المحادثات")
         c.execute("SELECT name, type FROM rooms")
@@ -210,3 +199,15 @@ else:
             with st.expander("🛡️ إدارة الأعضاء والحظر"):
                 ban_target = st.text_input("رقم الهاتف المراد حظره:")
                 if st.button("🚫 حظر فوري للمستخدم", use_container_width=True):
+                    c.execute("UPDATE users SET is_banned = 1, status = 'offline' WHERE phone = ?", (ban_target,))
+                    conn.commit()
+                    st.success("تم الحظر بنجاح.")
+                if st.button("✅ إلغاء حظر الحساب", use_container_width=True):
+                    c.execute("UPDATE users SET is_banned = 0 WHERE phone = ?", (ban_target,))
+                    conn.commit()
+                    st.success("تم فك الحظر.")
+
+        # حالة الأعضاء المتصلين والمؤشر التفاعلي
+        st.markdown("---")
+        st.subheader("🟢 النشطون حالياً")
+    
