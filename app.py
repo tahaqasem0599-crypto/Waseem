@@ -2,57 +2,38 @@ import streamlit as st
 import sqlite3
 import os
 import hashlib
-import time
 from datetime import datetime
 
-# --- إعدادات الواجهة الاحترافية الرسمية وتصميم الصفحة ---
+# --- إعدادات الواجهة الاحترافية الرسمية ---
 st.set_page_config(page_title="تليجرام بريميوم الأصلي", page_icon="✈️", layout="centered")
-
-# دمج تصميم الـ CSS الخاص بتليجرام
-st.markdown("""
-<style>
-    .block-container { padding-top: 1rem; }
-    .stApp {
-        background-color: #E7EBF0;
-        background-attachment: fixed;
-    }
-</style>
-""", unsafe_allow_html=True)
 
 # --- إدارة قاعدة البيانات الكلية ---
 def init_db():
     conn = sqlite3.connect('telegram_premium_ultimate.db', check_same_thread=False)
     c = conn.cursor()
-    # 1. جدول المستخدمين
     c.execute('''CREATE TABLE IF NOT EXISTS users (
                     phone TEXT PRIMARY KEY, username TEXT, password TEXT, 
                     bio TEXT, avatar TEXT, status TEXT, role TEXT, is_banned INTEGER DEFAULT 0)''')
-    # 2. جدول الرسائل
     c.execute('''CREATE TABLE IF NOT EXISTS messages (
                     id INTEGER PRIMARY KEY AUTOINCREMENT, room TEXT, phone TEXT, 
                     username TEXT, msg_type TEXT, content TEXT, timestamp TEXT, 
                     is_edited INTEGER DEFAULT 0, reply_to_text TEXT DEFAULT NULL,
-                    is_pinned INTEGER DEFAULT 0, burn_after INTEGER DEFAULT 0, created_at REAL)''')
-    # 3. جدول الغرف والقنوات
+                    is_pinned INTEGER DEFAULT 0)''')
     c.execute('''CREATE TABLE IF NOT EXISTS rooms (
-                    name TEXT PRIMARY KEY, type TEXT, creator TEXT, pinned_msg_text TEXT DEFAULT NULL)''')
-    # 4. جدول التفاعلات
+                    name TEXT PRIMARY KEY, type TEXT, creator TEXT)''')
     c.execute('''CREATE TABLE IF NOT EXISTS reactions (
                     msg_id INTEGER, phone TEXT, emoji TEXT, PRIMARY KEY(msg_id, phone))''')
-    # 5. جدول الاستطلاعات (Polls)
     c.execute('''CREATE TABLE IF NOT EXISTS polls (
                     id INTEGER PRIMARY KEY AUTOINCREMENT, room TEXT, question TEXT, option1 TEXT, option2 TEXT)''')
-    # 6. جدول أصوات الاستطلاعات
     c.execute('''CREATE TABLE IF NOT EXISTS poll_votes (
                     poll_id INTEGER, phone TEXT, option_num INTEGER, PRIMARY KEY(poll_id, phone))''')
     
-    # حساب المشرف والغرف الافتراضية
     c.execute("SELECT * FROM users WHERE phone = 'admin'")
     if not c.fetchone():
         hashed_pass = hashlib.sha256(str.encode("admin123")).hexdigest()
         c.execute("INSERT INTO users VALUES ('admin', 'المشرف العام 👑', ?, 'إدارة منصة تليجرام بريميوم', '👑', 'offline', 'admin', 0)", (hashed_pass,))
-        c.execute("INSERT INTO rooms VALUES ('📢 أخبار عاجلة دولية', 'قناة', 'admin', NULL)")
-        c.execute("INSERT INTO rooms VALUES ('👥 ملتقى المطورين المحترفين', 'مجموعة', 'admin', NULL)")
+        c.execute("INSERT INTO rooms VALUES ('📢 أخبار عاجلة دولية', 'قناة', 'admin')")
+        c.execute("INSERT INTO rooms VALUES ('👥 ملتقى المطورين المحترفين', 'مجموعة', 'admin')")
     conn.commit()
     return conn
 
@@ -64,46 +45,33 @@ def make_hashes(password):
 def check_hashes(password, hashed_text):
     return make_hashes(password) == hashed_text
 
-# --- معالجة وتنظيف الرسائل ذاتية التدمير ---
-def clean_burned_messages(room):
-    c = conn.cursor()
-    now_ts = time.time()
-    c.execute("SELECT id FROM messages WHERE room = ? AND burn_after > 0 AND (? - created_at) > burn_after", (room, now_ts))
-    expired = c.fetchall()
-    for (m_id,) in expired:
-        c.execute("DELETE FROM messages WHERE id = ?", (m_id,))
-        c.execute("DELETE FROM reactions WHERE msg_id = ?", (m_id,))
-    conn.commit()
-
-# --- بوت الرد التلقائي للمحاكاة ---
 def trigger_bot_response(room, user_msg):
     msg_lower = user_msg.lower()
     bot_reply = ""
     if "مرحبا" in msg_lower or "سلام" in msg_lower:
         bot_reply = "🏆 أهلاً بك في تليجرام بريميوم الفاخر! أنا البوت الرسمي لخدمتك."
     elif "وقت" in msg_lower or "ساعة" in msg_lower:
-        bot_reply = f"⏰ الوقت والنبض الحالي: {datetime.now().strftime('%I:%M:%p')}"
+        bot_reply = f"⏰ الوقت الحالي: {datetime.now().strftime('%I:%M %p')}"
     elif "تصويت" in msg_lower or "استطلاع" in msg_lower:
-        bot_reply = "📊 يمكنك الآن إنشاء استطلاعات رأي حقيقية باستخدام اللوحة المخصصة بالأسفل!"
+        bot_reply = "📊 يمكنك إنشاء استطلاع رأي من التبويب بالأسفل!"
     else:
-        bot_reply = "🤖 رسالتك مشفرة ومستلمة بأمان في خوادم السيرفر الفوري للبرنامج."
+        bot_reply = "🤖 رسالتك مستلمة ومحفوظة بأمان في السيرفر."
 
     if bot_reply:
         t_now = datetime.now().strftime("%I:%M %p")
         c = conn.cursor()
-        c.execute("INSERT INTO messages (room, phone, username, msg_type, content, timestamp, created_at) VALUES (?, 'bot', 'Telegram_Bot 🤖', 'text', ?, ?, ?)",
-                  (room, bot_reply, t_now, time.time()))
+        c.execute("INSERT INTO messages (room, phone, username, msg_type, content, timestamp) VALUES (?, 'bot', 'Telegram_Bot 🤖', 'text', ?, ?)",
+                  (room, bot_reply, t_now))
         conn.commit()
 
 # --- واجهات التسجيل والدخول الآمن ---
 if 'user_phone' not in st.session_state:
-    st.title("✈️ تليجرام ويب - النسخة الاحترافية الرسمية")
-    st.markdown("<p style='color:gray;'>مرحباً بك في نظام محاكاة تليجرام بريميوم المتكامل</p>", unsafe_allow_html=True)
+    st.title("✈️ تليجرام ويب - النسخة المستقرة الرسمية")
     
     tab1, tab2 = st.tabs(["🔑 تسجيل الدخول الرسمي", "📝 فتح حساب بريميوم"])
     
     with tab1:
-        login_phone = st.text_input("رقم الهاتف الذكي", placeholder="مثال: admin أو 0590000")
+        login_phone = st.text_input("رقم الهاتف الذكي", placeholder="مثال: 0598338642 أو admin")
         login_pass = st.text_input("كلمة السر الخاصة بالحساب", type="password")
         if st.button("تسجيل الدخول والربط", use_container_width=True):
             c = conn.cursor()
@@ -111,57 +79,48 @@ if 'user_phone' not in st.session_state:
             res = c.fetchone()
             if res:
                 if res[3] == 1:
-                    st.error("❌ تم حظر هذا الحساب من قبل الإدارة لمخالفة شروط الاستخدام!")
+                    st.error("❌ تم حظر هذا الحساب!")
                 elif check_hashes(login_pass, res[0]):
                     st.session_state.user_phone = login_phone
                     st.session_state.user_role = res[2]
-                    st.session_state.muted_rooms = set()
+                    st.session_state.username = res[1]
                     c.execute("UPDATE users SET status = 'online' WHERE phone = ?", (login_phone,))
                     conn.commit()
                     st.rerun()
                 else:
                     st.error("⚠️ كلمة المرور المدخلة غير صحيحة.")
             else:
-                st.error("⚠️ رقم الهاتف غير مسجل في قاعدة البيانات.")
+                st.error("⚠️ رقم الهاتف غير مسجل.")
                 
     with tab2:
-        reg_phone = st.text_input("تعيين رقم الهاتف")
+        reg_phone = st.text_input("تعيين رقم الهاتف الجديد")
         reg_user = st.text_input("اسم العرض في المحادثات")
-        reg_pass = st.text_input("أدخل كلمة مرور قوية", type="password")
+        reg_pass = st.text_input("أدخل كلمة مرور قوية الحساب", type="password")
         if st.button("تفعيل الحساب فوراً", use_container_width=True):
             if reg_phone.strip() and reg_user.strip() and reg_pass.strip():
                 try:
                     c = conn.cursor()
                     c.execute("INSERT INTO users VALUES (?, ?, ?, ?, ?, ?, ?, 0)", 
-                              (reg_phone, reg_user, make_hashes(reg_pass), "أستخدم تليجرام بريميوم الرسمي مبرمج باحتراف!", "👤", "offline", "user"))
+                              (reg_phone, reg_user, make_hashes(reg_pass), "أستخدم تليجرام بريميوم!", "👤", "offline", "user"))
                     conn.commit()
-                    st.success("🎉 رائع جداً! تم إنشاء الحساب بنجاح، توجه إلى تبويب تسجيل الدخول الآن.")
+                    st.success("🎉 تم إنشاء الحساب بنجاح! توجه إلى تبويب تسجيل الدخول الآن.")
                 except sqlite3.IntegrityError:
-                    st.error("رقم الهاتف مسجل ومستخدم بالفعل.")
+                    st.error("رقم الهاتف مسجل بالفعل.")
 
 else:
-    # --- إعدادات الحساب النشط ---
     user_phone = st.session_state.user_phone
     user_role = st.session_state.user_role
-    
-    c = conn.cursor()
-    c.execute("SELECT username, bio, avatar FROM users WHERE phone = ?", (user_phone,))
-    u_info = c.fetchone()
-    st.session_state.username = u_info[0]
     
     if 'reply_msg' not in st.session_state:
         st.session_state.reply_msg = None
 
-    # الشريحة الجانبية للتحكم الكلي (Sidebar)
     with st.sidebar:
-        st.write(f"<h3>{u_info[2]} {u_info[0]}</h3>", unsafe_allow_html=True)
-        st.caption(f"📱 {user_phone} | رتبة الحساب: {user_role.upper()}")
+        st.write(f"<h3>👤 {st.session_state.username}</h3>", unsafe_allow_html=True)
+        st.caption(f"📱 {user_phone} | رتبة: {user_role.upper()}")
         
-        # 1. محرك البحث الشامل
         st.markdown("---")
-        global_search = st.text_input("🔍 بحث شامل عن غرف وقنوات:", placeholder="اكتب اسم الغرفة...")
+        global_search = st.text_input("🔍 بحث عن غرف وقنوات:", placeholder="اكتب اسم الغرفة...")
         
-        # 2. إنشاء المجموعات والقنوات ديناميكياً
         with st.expander("➕ إنشاء مجموعة أو قناة"):
             r_name = st.text_input("اسم الوجهة الجديدة:")
             r_type = st.radio("نوع الوجهة الحصري:", ["مجموعة عامة", "قناة بث"])
@@ -169,14 +128,13 @@ else:
                 if r_name.strip():
                     try:
                         final_type = "قناة" if "قناة" in r_type else "مجموعة"
-                        c.execute("INSERT INTO rooms VALUES (?, ?, ?, NULL)", (r_name.strip(), final_type, user_phone))
+                        c.execute("INSERT INTO rooms VALUES (?, ?, ?)", (r_name.strip(), final_type, user_phone))
                         conn.commit()
-                        st.success("تم الإنشاء بنجاح!")
+                        st.success("تم الإنشاء!")
                         st.rerun()
                     except sqlite3.IntegrityError:
                         st.error("الاسم مستخدم مسبقاً.")
 
-        # جلب وتصفية الغرف
         st.markdown("---")
         st.subheader("💬 قائمة المحادثات")
         c.execute("SELECT name, type FROM rooms")
@@ -186,28 +144,59 @@ else:
             
         if all_rooms_db:
             room_names = [r[0] for r in all_rooms_db]
-            current_room = st.radio("اختر المحادثة المستهدفة:", room_names, label_visibility="collapsed")
+            current_room = st.radio("اختر المحادثة:", room_names, label_visibility="collapsed")
             is_news_channel = [r[1] for r in all_rooms_db if r[0] == current_room][0] == "قناة"
         else:
-            st.write("_لا توجد غرف مطابقة لبحثك_")
             current_room = "📢 أخبار عاجلة دولية"
             is_news_channel = True
 
-        # 3. لوحة إدارة الآدمن للحظر والفك
-        if user_role == "admin":
-            st.markdown("---")
-            with st.expander("🛡️ إدارة الأعضاء والحظر"):
-                ban_target = st.text_input("رقم الهاتف المراد حظره:")
-                if st.button("🚫 حظر فوري للمستخدم", use_container_width=True):
-                    c.execute("UPDATE users SET is_banned = 1, status = 'offline' WHERE phone = ?", (ban_target,))
-                    conn.commit()
-                    st.success("تم الحظر بنجاح.")
-                if st.button("✅ إلغاء حظر الحساب", use_container_width=True):
-                    c.execute("UPDATE users SET is_banned = 0 WHERE phone = ?", (ban_target,))
-                    conn.commit()
-                    st.success("تم فك الحظر.")
-
-        # حالة الأعضاء المتصلين والمؤشر التفاعلي
         st.markdown("---")
-        st.subheader("🟢 النشطون حالياً")
+        if st.button("🔄 تحديث الشات الفوري", use_container_width=True):
+            st.rerun()
+
+        if st.button("🚪 تسجيل الخروج الفوري", use_container_width=True):
+            c.execute("UPDATE users SET status = 'offline' WHERE phone = ?", (user_phone,))
+            conn.commit()
+            del st.session_state.user_phone
+            del st.session_state.user_role
+            st.rerun()
+
+    st.title(f"📍 {current_room}")
+    
+    # عرض الرسائل المثبتة 
+    c.execute("SELECT username, content FROM messages WHERE room = ? AND is_pinned = 1 ORDER BY id DESC LIMIT 1", (current_room,))
+    pinned = c.fetchone()
+    if pinned:
+        st.markdown(f"<div style='background-color: #E0F7FA; padding: 10px; border-radius: 8px; border-right: 5px solid #00acc1; margin-bottom: 10px;'>📌 <b>مثبتة:</b> {pinned[1]}</div>", unsafe_allow_html=True)
+
+    # نافذة عرض أرشيف الشات
+    chat_container = st.container(height=400, border=True)
+    with chat_container:
+        c.execute("""SELECT m.id, m.username, m.msg_type, m.content, m.timestamp, m.phone, m.is_edited, m.reply_to_text 
+                     FROM messages m WHERE m.room = ? ORDER BY m.id ASC""", (current_room,))
+        messages = c.fetchall()
+        
+        for msg_id, msg_user, msg_type, content, time_str, msg_owner_phone, is_edited, reply_text in messages:
+            is_me = (msg_owner_phone == user_phone)
+            align = "right" if is_me else "left"
+            bg_color = "#E8F5E9" if is_me else "#F5F5F5"
+            
+            st.markdown(f"""
+            <div style='text-align: {align}; margin-bottom: 12px;'>
+                <div style='background-color: {bg_color}; display: inline-block; padding: 12px; border-radius: 14px; max-width: 85%; text-align: right; box-shadow: 1px 1px 3px rgba(0,0,0,0.04);'>
+                    <b style='color: #0088cc;'>👤 {msg_user}</b> <small style='color: gray; float: left; margin-right: 15px;'>{time_str}</small>
+            """, unsafe_allow_html=True)
+            
+            if reply_text:
+                st.markdown(f"<div style='background: rgba(0,0,0,0.04); padding: 5px; margin: 4px 0; border-right: 3px solid #999; font-size: 13px;'>↪️ {reply_text}</div>", unsafe_allow_html=True)
+            
+            st.markdown("<div style='margin-top: 5px; color: black;'>", unsafe_allow_html=True)
+            if msg_type == "text":
+                st.write(content)
+            elif msg_type == "sticker":
+                st.markdown(f"<p style='font-size:50px; margin:0;'>{content}</p>", unsafe_allow_html=True)
+            elif msg_type == "image":
+                st.image(content, width=240)
+            st.markdown("</div>")
+
     
