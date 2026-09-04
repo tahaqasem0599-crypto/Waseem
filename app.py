@@ -1,155 +1,199 @@
 import streamlit as st
-import sqlite3
-from datetime import datetime
+import datetime
+import streamlit.components.v1 as components
 
-# إعداد الصفحة لتكون مريحة للعين وتماثل التطبيقات
-st.set_page_config(page_title="تليجرام ويب الأصلي", page_icon="✈️", layout="centered")
+# إعدادات الصفحة العامة لمنح التطبيق مظهراً احترافياً
+st.set_page_config(
+    page_title="Telegram Clone - وسيم المطور",
+    page_icon="💬",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-# --- تحسين التصميم بالكامل عبر CSS لمحاكاة تليجرام ---
+# تخصيص واجهة المستخدم (CSS) لتطابق ألوان ومظهر التلجرام الحقيقي
 st.markdown("""
-<style>
-    /* تغيير خلفية التطبيق بالكامل إلى لون رمادي تليجرام الخفيف */
+    <style>
+    /* خلفية التطبيق العامة */
     .stApp {
-        background-color: #e7ebf0;
+        background-color: #0e1621;
+        color: #ffffff;
     }
-    /* تصميم حاوية الدردشة بخلفية تليجرام الشهيرة */
-    .chat-container {
-        background-color: #f4f4f5;
-        background-image: url('https://transparenttextures.com');
-        padding: 15px;
-        border-radius: 12px;
-        box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
-        margin-bottom: 15px;
+    /* تخصيص الشريط الجانبي */
+    [data-testid="stSidebar"] {
+        background-color: #17212b;
+        border-right: 1px solid #101921;
     }
-    /* فقاعة رسائل المستخدم الحالي (أنت) - باللون الأخضر/الأزرق التليجرامي محاذاة لليمين */
-    .message-me {
-        background-color: #effdde;
-        color: #000000;
-        padding: 10px 14px;
+    /* فقاعات رسائل المستخدم (أزرق تلجرام) */
+    .user-msg {
+        background-color: #2b5278;
+        padding: 10px 15px;
         border-radius: 15px 15px 0px 15px;
-        margin: 8px 0 8px auto;
-        max-width: 75%;
-        width: fit-content;
-        box-shadow: 0px 1px 2px rgba(0,0,0,0.15);
-        text-align: right;
+        margin: 5px 0;
+        max-width: 70%;
+        float: right;
+        clear: both;
+        color: white;
     }
-    /* فقاعة رسائل الآخرين - باللون الأبيض محاذاة لليسار */
-    .message-other {
-        background-color: #ffffff;
-        color: #000000;
-        padding: 10px 14px;
+    /* فقاعات رسائل الطرف الآخر أو البوت */
+    .other-msg {
+        background-color: #182533;
+        padding: 10px 15px;
         border-radius: 15px 15px 15px 0px;
-        margin: 8px auto 8px 0;
-        max-width: 75%;
-        width: fit-content;
-        box-shadow: 0px 1px 2px rgba(0,0,0,0.15);
+        margin: 5px 0;
+        max-width: 70%;
+        float: left;
+        clear: both;
+        border: 1px solid #202b36;
+        color: white;
+    }
+    /* نصوص الوقت والمسميات داخل غرف الدردشة */
+    .msg-time {
+        font-size: 0.8rem;
+        color: #7f91a4;
+        margin-top: 5px;
         text-align: right;
     }
-    .user-name {
-        color: #388e3c;
-        font-weight: bold;
-        font-size: 13px;
-        margin-bottom: 2px;
+    /* تصميم العناوين */
+    .chat-header {
+        background-color: #17212b;
+        padding: 15px;
+        border-radius: 10px;
+        border-bottom: 2px solid #24303f;
+        margin-bottom: 20px;
     }
-    .time-stamp {
-        color: #707579;
-        font-size: 10px;
-        display: block;
-        text-align: left;
-        margin-top: 4px;
-    }
-    /* تخصيص الأزرار لتصبح دائرية وأنيقة */
-    .stButton>button {
-        border-radius: 20px !important;
-    }
-</style>
+    </style>
 """, unsafe_allow_html=True)
 
-def init_db():
-    conn = sqlite3.connect('tg_premium_v2.db', check_same_thread=False)
-    c = conn.cursor()
-    c.execute('CREATE TABLE IF NOT EXISTS msgs (id INTEGER PRIMARY KEY AUTOINCREMENT, user TEXT, content TEXT, ts TEXT)')
-    conn.commit()
-    return conn
+# ----------------- كود منع خمول الهاتف وانطفاء الشاشة (Anti-Sleep JavaScript) -----------------
+# هذا السكريبت يتصل بنظام التشغيل عبر المتصفح ليمنع الشاشة من الإغلاق التلقائي نهائياً طالما الصفحة مفتوحة.
+js_wake_lock = """
+<script>
+let wakeLock = null;
 
-conn = init_db()
+async function requestWakeLock() {
+    try {
+        if ('wakeLock' in navigator) {
+            wakeLock = await navigator.wakeLock.request('screen');
+            console.log('Screen Wake Lock is active!');
+        } else {
+            console.log('Wake Lock API not supported in this browser.');
+        }
+    } catch (err) {
+        console.error(`${err.name}, ${err.message}`);
+    }
+}
 
-# --- إدارة جلسة المستخدم ---
-if 'user' not in st.session_state:
-    st.markdown("<h1 style='text-align: center; color: #2481cc;'>✈️ Telegram</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: gray;'>مرحباً بك في تليجرام ويب المطور. سجل اسمك لبدء المحادثة الفورية.</p>", unsafe_allow_html=True)
-    
-    with st.container(border=True):
-        name = st.text_input("اسم العرض (اللقب):", placeholder="مثال: أبو مالك العطار")
-        if st.button("📌 دخول آمن للمنصة", use_container_width=True):
-            if name.strip():
-                st.session_state.user = name.strip()
-                st.rerun()
-else:
-    # شريط علوي أنيق يحمل هوية تليجرام الزرقاء
-    st.markdown(f"""
-    <div style='background-color: #2481cc; padding: 12px; border-radius: 10px; color: white; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;'>
-        <b style='font-size: 18px;'>✈️ تليجرام بلس المشترك</b>
-        <span>👤 {st.session_state.user}</span>
+// تفعيل قفل السكون فور تحميل الصفحة
+requestWakeLock();
+
+// إعادة تفعيل القفل إذا قام المستخدم بتبديل التبويبات ثم عاد للتطبيق
+document.addEventListener('visibilitychange', async () => {
+    if (wakeLock !== null && document.visibilityState === 'visible') {
+        requestWakeLock();
+    }
+});
+</script>
+"""
+# دمج السكريبت في التطبيق ليعمل في الخلفية صامتاً
+components.html(js_wake_lock, height=0, width=0)
+
+
+# إدارة حالة التطبيق لحفظ الرسائل (Session State) لكي لا تختفي عند التحديث
+if "messages" not in st.session_state:
+    st.session_state.messages = {
+        "القناة الإخبارية العاجلة 📢": [
+            {"sender": "المشرف", "text": "أهلاً بكم في قناة الأخبار العاجلة لقطاع غزة", "time": ": ص"},
+            {"sender": "المشرف", "text": "تحديث: تفعيل الرابط التعليمي الجديد لطلابنا بنجاح", "time": ": ص"}
+        ],
+        "مجموعة المطورين العرب 💻": [
+            {"sender": "أحمد", "text": "السلام عليكم يا شباب، كيف برمجت واجهة التلجرام هذه؟", "time": ": ص"},
+            {"sender": "المطور وسيم", "text": "وعليكم السلام، برمجتها باستخدام Streamlit و Python بكل سهولة!", "time": ": ص"}
+        ],
+        "دردشة الدعم الفني الخاص 🛠️": [
+            {"sender": "الدعم", "text": "مرحباً وسيم، كيف يمكننا مساعدتك في مشروعك اليوم？", "time": ": ص"}
+        ]
+    }
+
+# ----------------- الشريط الجانبي (Sidebar) -----------------
+st.sidebar.markdown("<h2 style='color: #4ba3e3; text-align: center;'>Telegram</h2>", unsafe_allow_html=True)
+st.sidebar.write(f"👤 **المطور:** وسيم نائل")
+st.sidebar.markdown("---")
+
+# لافتة تأكيد في الشريط الجانبي لتعرف أن النظام شغال
+st.sidebar.success("⚡ وضع عدم السكون نشط: الشاشة ستبقى مضيئة دائماً.")
+st.sidebar.markdown("---")
+
+# أقسام التلجرام (القنوات والمجموعات)
+st.sidebar.markdown("### 💬 القنوات والمجموعات")
+chat_options = list(st.session_state.messages.keys())
+selected_chat = st.sidebar.radio("اختر المحادثة أو القناة:", chat_options)
+
+# ميزة إضافية بالشريط الجانبي: إنشاء قناة جديدة
+st.sidebar.markdown("---")
+st.sidebar.markdown("### ➕ إنشاء قسم جديد")
+new_chat_name = st.sidebar.text_input("اسم القناة/المجموعة الجديدة:")
+chat_type = st.sidebar.selectbox("النوع:", ["قناة عامة 📢", "مجموعة دردشة 👥"])
+
+if st.sidebar.button("إنشاء الآن"):
+    if new_chat_name:
+        full_name = f"{new_chat_name} {chat_type.split()[-]}"
+        if full_name not in st.session_state.messages:
+            st.session_state.messages[full_name] =
+            st.sidebar.success(f"تم إنشاء {full_name} بنجاح!")
+            st.rerun()
+    else:
+        st.sidebar.error("الرجاء إدخال اسم!")
+
+# ----------------- نافذة الدردشة الرئيسية -----------------
+# رأس المحادثة المستهدفة
+st.markdown(f"""
+    <div class="chat-header">
+        <h3 style="margin:0; color:#4ba3e3;">{selected_chat}</h3>
+        <p style="margin:5px 0 0 0; color:#7f91a4; font-size:14px;">تطبيق ويب متكامل ومطور يحاكي خصائص التلجرام الأصلي</p>
     </div>
-    """, unsafe_allow_html=True)
-    
-    # القائمة الجانبية للتحكم
-    with st.sidebar:
-        st.subheader("⚙️ خيارات الحساب")
-        if st.button("🚪 تسجيل الخروج من التطبيق", use_container_width=True):
-            del st.session_state.user
-            st.rerun()
-        st.markdown("---")
-        st.caption("مطور باحترافية لمحاكاة واجهة تليجرام الأصلية.")
+""", unsafe_allow_html=True)
 
-    # صندوق الشات المخصص بالتصميم الجديد
-    st.markdown("<div class='chat-container'>", unsafe_allow_html=True)
-    chat_box = st.container(height=350, border=False)
-    
-    with chat_box:
-        c = conn.cursor()
-        c.execute('SELECT user, content, ts FROM msgs ORDER BY id ASC')
-        records = c.fetchall()
-        
-        if not records:
-            st.markdown("<p style='text-align:center; color:gray; font-style:italic;'>لا توجد رسائل بعد... ابدأ ببث رسالتك الأولى الآن! 🚀</p>", unsafe_allow_html=True)
-            
-        for usr, txt, t in records:
-            if usr == st.session_state.user:
-                # رسالتي أنا
-                st.markdown(f"""
-                <div class='message-me'>
-                    <div>{txt}</div>
-                    <span class='time-stamp'>{t} ✔️</span>
-                </div>
-                """, unsafe_allow_html=True)
-            else:
-                # رسائل الأعضاء الآخرين
-                st.markdown(f"""
-                <div class='message-other'>
-                    <div class='user-name'>@{usr}</div>
-                    <div>{txt}</div>
-                    <span class='time-stamp'>{t}</span>
-                </div>
-                """, unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+# عرض الرسائل المخزنة داخل القناة أو المجموعة المختارة
+chat_placeholder = st.container()
 
-    # نموذج إرسال الرسائل الفوري
-    with st.form("send_msg_form", clear_on_submit=True):
-        col_input, col_btn = st.columns([4, 1])
-        with col_input:
-            msg = st.text_input("اكتب رسالة...", placeholder="اكتب رسالتك هنا...", label_visibility="collapsed")
-        with col_btn:
-            submit = st.form_submit_button("🚀 إرسال", use_container_width=True)
-            
-        if submit and msg.strip():
-            t_now = datetime.now().strftime("%I:%M %p")
-            c = conn.cursor()
-            c.execute('INSERT INTO msgs (user, content, ts) VALUES (?, ?, ?)', (st.session_state.user, msg.strip(), t_now))
-            conn.commit()
-            st.rerun()
-            
-    # زر تحديث يدوي سريع وسلس بجانب الشات
-    if st.button("🔄 تحديث غرف الدردشة", use_container_width=True):
-        st.rerun()
+with chat_placeholder:
+    for msg in st.session_state.messages[selected_chat]:
+        if msg["sender"] == "المطور وسيم" or msg["sender"] == "المشرف":
+            st.markdown(f"""
+                <div class="user-msg">
+                    <strong>{msg["sender"]}</strong><br>
+                    {msg["text"]}
+                    <div class="msg-time">{msg["time"]}</div>
+                </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown(f"""
+                <div class="other-msg">
+                    <strong>{msg["sender"]}</strong><br>
+                    {msg["text"]}
+                    <div class="msg-time">{msg["time"]}</div>
+                </div>
+            """, unsafe_allow_html=True)
+
+st.markdown("<div style='clear:both; margin-bottom:40px;'></div>", unsafe_allow_html=True)
+
+# صندوق إرسال الرسائل
+st.markdown("---")
+with st.form(key="send_message_form", clear_on_submit=True):
+    col1, col2 = st.columns()
+    with col1:
+        user_input = st.text_input("اكتب رسالتك هنا...", placeholder="اكتب رسالة...")
+    with col2:
+        submit_button = st.form_submit_button(label="إرسال 🚀")
+
+# معالجة إرسال الرسالة وإضافتها فوراً للقائمة
+if submit_button and user_input:
+    now = datetime.datetime.now().strftime("%I:%M %p")
+    now_ar = now.replace("AM", "ص").replace("PM", "م")
+    
+    st.session_state.messages[selected_chat].append({
+        "sender": "المطور وسيم",
+        "text": user_input,
+        "time": now_ar
+    })
+    st.rerun()
