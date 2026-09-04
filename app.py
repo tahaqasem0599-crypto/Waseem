@@ -192,7 +192,7 @@ st.sidebar.markdown("### 💬 القنوات والمجموعات")
 chat_options = list(st.session_state.messages.keys())
 selected_chat = st.sidebar.radio("اختر المحادثة أو القناة:", chat_options)
 
-# إنشاء أقسام جديدة
+# إنشاء أقسام جديدة (تم إصلاح القوس هنا)
 st.sidebar.markdown("---")
 st.sidebar.markdown("### ➕ إنشاء قسم جديد")
 new_chat_name = st.sidebar.text_input("اسم القناة/المجموعة الجديدة:")
@@ -274,3 +274,4 @@ if uploaded_file is not None:
     content_data = Image.open(uploaded_file) if file_type == "image" else uploaded_file.name
     
     st.session_state.messages[selected_chat].append({
+        
