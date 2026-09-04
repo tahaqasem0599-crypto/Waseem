@@ -65,7 +65,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ----------------- كود منع خمول الهاتف وانطفاء الشاشة (Anti-Sleep JavaScript) -----------------
-# هذا السكريبت يتصل بنظام التشغيل عبر المتصفح ليمنع الشاشة من الإغلاق التلقائي نهائياً طالما الصفحة مفتوحة.
 js_wake_lock = """
 <script>
 let wakeLock = null;
@@ -97,20 +96,19 @@ document.addEventListener('visibilitychange', async () => {
 # دمج السكريبت في التطبيق ليعمل في الخلفية صامتاً
 components.html(js_wake_lock, height=0, width=0)
 
-
 # إدارة حالة التطبيق لحفظ الرسائل (Session State) لكي لا تختفي عند التحديث
 if "messages" not in st.session_state:
     st.session_state.messages = {
         "القناة الإخبارية العاجلة 📢": [
-            {"sender": "المشرف", "text": "أهلاً بكم في قناة الأخبار العاجلة لقطاع غزة", "time": ": ص"},
-            {"sender": "المشرف", "text": "تحديث: تفعيل الرابط التعليمي الجديد لطلابنا بنجاح", "time": ": ص"}
+            {"sender": "المشرف", "text": "أهلاً بكم في قناة الأخبار العاجلة لقطاع غزة.", "time": "09:00 ص"},
+            {"sender": "المشرف", "text": "تحديث: تفعيل الرابط التعليمي الجديد لطلابنا بنجاح.", "time": "10:15 ص"}
         ],
         "مجموعة المطورين العرب 💻": [
-            {"sender": "أحمد", "text": "السلام عليكم يا شباب، كيف برمجت واجهة التلجرام هذه؟", "time": ": ص"},
-            {"sender": "المطور وسيم", "text": "وعليكم السلام، برمجتها باستخدام Streamlit و Python بكل سهولة!", "time": ": ص"}
+            {"sender": "أحمد", "text": "السلام عليكم يا شباب، كيف برمجت واجهة التلجرام هذه؟", "time": "11:00 ص"},
+            {"sender": "المطور وسيم", "text": "وعليكم السلام، برمجتها باستخدام Streamlit و Python بكل سهولة!", "time": "11:02 ص"}
         ],
         "دردشة الدعم الفني الخاص 🛠️": [
-            {"sender": "الدعم", "text": "مرحباً وسيم، كيف يمكننا مساعدتك في مشروعك اليوم？", "time": ": ص"}
+            {"sender": "الدعم", "text": "مرحباً وسيم، كيف يمكننا مساعدتك في مشروعك اليوم؟", "time": "07:30 ص"}
         ]
     }
 
@@ -136,9 +134,9 @@ chat_type = st.sidebar.selectbox("النوع:", ["قناة عامة 📢", "مج
 
 if st.sidebar.button("إنشاء الآن"):
     if new_chat_name:
-        full_name = f"{new_chat_name} {chat_type.split()[-]}"
+        full_name = f"{new_chat_name} {chat_type}"
         if full_name not in st.session_state.messages:
-            st.session_state.messages[full_name] =
+            st.session_state.messages[full_name] = []
             st.sidebar.success(f"تم إنشاء {full_name} بنجاح!")
             st.rerun()
     else:
@@ -180,7 +178,7 @@ st.markdown("<div style='clear:both; margin-bottom:40px;'></div>", unsafe_allow_
 # صندوق إرسال الرسائل
 st.markdown("---")
 with st.form(key="send_message_form", clear_on_submit=True):
-    col1, col2 = st.columns()
+    col1, col2 = st.columns([4, 1])
     with col1:
         user_input = st.text_input("اكتب رسالتك هنا...", placeholder="اكتب رسالة...")
     with col2:
@@ -197,3 +195,4 @@ if submit_button and user_input:
         "time": now_ar
     })
     st.rerun()
+    
