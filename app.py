@@ -289,7 +289,6 @@ for msg in st.session_state.messages[selected_chat]:
     bubble_side_class = "bubble-me" if is_me else "bubble-other"
     sender_title = "أنت" if is_me else msg["sender"]
     
-    # فلترة آمنة لمنع اختلال الأقواس وحماية السينتكس
     if msg["type"] == "text":
         body_layout = f"<div>{msg['content']}</div>"
     elif msg["type"] == "image":
@@ -297,7 +296,6 @@ for msg in st.session_state.messages[selected_chat]:
     else:
         body_layout = f"<div>📁 ملف مستند: {msg['content']}</div>"
 
-    # حقن الفقاعة المقفلة تماماً بإحكام هائل
     st.markdown(f"""
     <div class="bubble {bubble_side_class}">
         {f'<div class="bubble-sender">{sender_title}</div>' if not is_me else ''}
@@ -308,22 +306,25 @@ for msg in st.session_state.messages[selected_chat]:
     </div>
     """, unsafe_allow_html=True)
     
-    # عرض ملفات الميديا الحقيقية المرفوعة أسفل الفقاعة مباشرة بداخل Streamlit
     if msg["type"] == "image" and not isinstance(msg["content"], str):
         st.image(msg["content"], width=320)
 
 st.markdown('</div>', unsafe_allow_html=True)
 
-# 7. صندوق إرسال الرسائل الفاخر والمثبت بالأسفل (Sticky Floating Actions Bar)
+# 7. صندوق إرسال الرسائل الفاخر والمثبت بالأسفل
 st.markdown('<div class="premium-input-bar">', unsafe_allow_html=True)
 
 with st.form(key="tg_perfect_form", clear_on_submit=True):
-    txt_col, file_col, button_col = st.columns()
+    txt_col, file_col, button_col = st.columns([6, 2, 1])
     
     with txt_col:
-        text_payload = st.text_input("الكتابة", placeholder="اكتب رسالتك المنسقة هنا...", label_visibility="collapsed")
+        text_payload = st.text_input("الكتابة", placeholder="اكتب رسالتك هنا...", label_visibility="collapsed")
     
     with file_col:
         file_payload = st.file_uploader("الملفات", type=["png", "jpg", "jpeg", "pdf"], label_visibility="collapsed")
         
     with button_col:
+        trigger_send = st.form_submit_button("إرسال")
+
+if trigger_send and text_payload:
+    stamp_time = datetime.datetime.now().strftime("%I:%M %p").replace("AM", "ص").replace("PM", "م")
