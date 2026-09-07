@@ -3,7 +3,7 @@ import datetime
 import requests
 from PIL import Image
 
-# 1. إعدادات الشاشة الكاملة للتطبيق
+# 1. إعدادات الشاشة الكاملة لتطبيق تليجرام
 st.set_page_config(
     page_title="تليجرام - Telegram Web",
     page_icon="✈️",
@@ -11,7 +11,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. هندسة واجهة المستخدم (CSS) لمحاكاة تطبيق التليجرام الداكن
+# 2. هندسة واجهة المستخدم (CSS) لمحاكاة تطبيق التليجرام الداكن واحتواء صندوق الإدخال
 st.markdown("""
 <style>
 /* تهيئة الخلفية الرسمية للتليجرام الداكن */
@@ -29,7 +29,7 @@ st.markdown("""
 /* تصفير مسافات التدفق لمنع انزلاق العناصر */
 .block-container {
     padding-top: 1rem !important;
-    padding-bottom: 8rem !important;
+    padding-bottom: 9rem !important;
     max-width: 100% !important;
 }
 
@@ -88,7 +88,34 @@ st.markdown("""
     color: #abc6e0;
 }
 
-/* زر إرسال دائري يحمل شعار تليجرام بالكامل وبمقاسات ثابتة */
+/* تخصيص وتثبيت شريط الإدخال في الأسفل تماماً على شاشات الهاتف */
+.bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #17212b;
+    padding: 12px 20px;
+    border-top: 1px solid #101921;
+    z-index: 9999;
+}
+
+/* تعديل حقل الكتابة الافتراضي ليدمج بشكل دائري سلس */
+div.stTextInput > div > div > input {
+    background-color: #0e1621 !important;
+    color: white !important;
+    border: 1px solid #101921 !important;
+    border-radius: 24px !important;
+    padding: 10px 18px !important;
+}
+
+/* إخفاء حواف مربع رفع الملفات واحتوائه بشكل نظيف */
+[data-testid="stFileUploader"] {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* تحويل زر الإرسال الافتراضي إلى دائرة تحمل شعار تليجرام الفعلي */
 div.stButton > button {
     background-color: #2481cc !important;
     background-image: url('https://wikimedia.org') !important;
@@ -100,7 +127,7 @@ div.stButton > button {
     width: 44px !important;
     height: 44px !important;
     border: none !important;
-    margin-top: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
 div.stButton > button:hover {
     background-color: #288fde !important;
@@ -108,7 +135,7 @@ div.stButton > button:hover {
 </style>
 """, unsafe_allow_html=True)
 
-# 3. تهيئة البيانات بشكل سليم ونصوص نظيفة خالية من تاغات الـ HTML القديمة
+# 3. تهيئة البيانات بشكل سليم وبمصفوفة نظيفة ومستقرة
 if "messages" not in st.session_state:
     st.session_state.messages = {
         "🍉 تلجرام غزة": [
@@ -123,7 +150,7 @@ if "messages" not in st.session_state:
 if "username" not in st.session_state:
     st.session_state.username = "Waseem"
 
-# 🔑 إعدادات الربط ببوت التليجرام الخارجي (ضع رموزك هنا للتفعيل)
+# 🔑 إعدادات الربط ببوت تليجرام الفعلي (ضع رموزك الخاصة هنا لربط مجموعتك وقناتك)
 BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
 CHAT_ID = "YOUR_TELEGRAM_CHAT_ID"
 
@@ -133,15 +160,17 @@ def relay_message_to_telegram(text):
         try: requests.post(url, json={"chat_id": CHAT_ID, "text": text}, timeout=3)
         except: pass
 
-# 4. بناء الشريط الجانبي لقائمة القنوات والمحادثات
+# 4. بناء القائمة الجانبية (شريط المحادثات المألوف)
 st.sidebar.title("Telegram")
 chat_keys = list(st.session_state.messages.keys())
 selected_chat = st.sidebar.selectbox("اختر المحادثة النشطة:", chat_keys)
 st.session_state.username = st.sidebar.text_input("⚙️ اسمك في المحادثة:", value=st.session_state.username)
 
-# زر لمسح ذاكرة التخزين المؤقتة إذا علقت النصوص القديمة في متصفحك
-if st.sidebar.button("🗑️ إعادة تهيئة ومسح النصوص القديمة"):
-    del st.session_state.messages
+# زر لمسح التكرارات وتنظيف الذاكرة العالقة بمتصفح الهاتف
+if st.sidebar.button("🗑️ إعادة تهيئة وتنظيف الرسائل المكررة"):
+    if selected_chat in st.session_state.messages:
+        # إبقاء أول رسالتين فقط وحذف التكرار العشوائي
+        st.session_state.messages[selected_chat] = st.session_state.messages[selected_chat][:2]
     st.rerun()
 
 # 5. عرض هيدر تليجرام في الشاشة الرئيسية
@@ -152,13 +181,13 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# 6. ساحة عرض الرسائل والفقاعات بشكل آمن ونظيف تماماً
+# 6. ساحة عرض الرسائل والفقاعات بشكل آمن وعزل كامل للـ HTML
+st.markdown('<div class="chat-container">', unsafe_allow_html=True)
 for msg in st.session_state.messages[selected_chat]:
     is_me = msg["sender"] == st.session_state.username
     bubble_class = "my-msg" if is_me else "other-msg"
     sender_title = "أنت" if is_me else msg["sender"]
     
-    # عرض الفقاعة بطريقة برمجية نظيفة ومعزولة
     st.markdown(f"""
     <div class="message-bubble {bubble_class}">
         <div style="font-size:12px; font-weight:bold; color:#5288c1; margin-bottom:3px;">{sender_title}</div>
@@ -169,47 +198,48 @@ for msg in st.session_state.messages[selected_chat]:
     
     if msg["type"] == "image" and not isinstance(msg["content"], str):
         st.image(msg["content"], width=280)
+st.markdown('</div>', unsafe_allow_html=True)
 
-# 7. صندوق إرسال الرسائل والملفات المبسط والتلقائي لمنع الانزلاق والتشوه على الهاتف
-st.write("---")
-with st.container():
-    # حقل النص الأساسي منفصل ليعطيه المساحة الكاملة على شاشات الهاتف ويمنع انزلاقه
-    user_text = st.text_input("الرسالة النصية:", placeholder="اكتب رسالتك هنا...", label_visibility="collapsed")
+# 7. صندوق إرسال ومرفقات محكم الإغلاق ومثبت بأسفل المتصفح (يمنع التكرار نهائياً)
+st.markdown('<div class="bottom-bar">', unsafe_allow_html=True)
+with st.form(key="telegram_secure_form", clear_on_submit=True):
+    txt_col, file_col, btn_col = st.columns([4, 2, 1]) # أوزان نسبية ممتازة لمنع تداخل أبعاد الهاتف
     
-    # كولوم مخصص فقط للمرفقات وزر الإرسال لترتيب مريح وثابت
-    col_file, col_btn = st.columns([5, 1])
-    
-    with col_file:
+    with txt_col:
+        user_text = st.text_input("الرسالة النصية", placeholder="اكتب رسالة...", label_visibility="collapsed")
+    with file_col:
         uploaded_media = st.file_uploader("إرفاق ملف", type=["png", "jpg", "jpeg", "pdf"], label_visibility="collapsed")
-    
-    with col_btn:
-        btn_trigger = st.form_submit_button("إرسال") if 'form' in locals() else st.button("إرسال")
+    with btn_col:
+        btn_trigger = st.form_submit_button("إرسال")
 
-# معالجة الضغط على زر الإرسال لتسجيل النصوص حياً
-if (btn_trigger and user_text) or (user_text and not btn_trigger and st.session_state.get('last_text') != user_text):
-    time_stamp = datetime.datetime.now().strftime("%I:%M %p").replace("AM", "ص").replace("PM", "م")
-    st.session_state.messages[selected_chat].append({
-        "sender": st.session_state.username,
-        "type": "text",
-        "content": user_text,
-        "time": time_stamp
-    })
-    relay_message_to_telegram(f"👤 {st.session_state.username} [{selected_chat}]:\n{user_text}")
-    st.rerun()
-
-# معالجة رفع الملفات والصور بطريقة مغلقة وآمنة
-if uploaded_media is not None:
-    time_stamp = datetime.datetime.now().strftime("%I:%M %p").replace("AM", "ص").replace("PM", "م")
-    media_kind = "image" if uploaded_media.type.startswith("image/") else "file"
-    try:
-        media_object = Image.open(uploaded_media) if media_kind == "image" else uploaded_media.name
-        st.session_state.messages[selected_chat].append({
-            "sender": st.session_state.username,
-            "type": media_kind,
-            "content": media_object,
-            "time": time_stamp
-        })
+    # يتم التحقق والمعالجة فقط وحصراً عند كبس زر الإرسال المباشر
+    if btn_trigger:
+        time_stamp = datetime.datetime.now().strftime("%I:%M %p").replace("AM", "ص").replace("PM", "م")
+        
+        # معالجة النصوص المرسلة أولاً
+        if user_text:
+            st.session_state.messages[selected_chat].append({
+                "sender": st.session_state.username,
+                "type": "text",
+                "content": user_text,
+                "time": time_stamp
+            })
+            relay_message_to_telegram(f"👤 {st.session_state.username} [{selected_chat}]:\n{user_text}")
+            
+        # معالجة الملف المرفق إن وُجد في نفس اللحظة
+        if uploaded_media is not None:
+            media_kind = "image" if uploaded_media.type.startswith("image/") else "file"
+            try:
+                media_object = Image.open(uploaded_media) if media_kind == "image" else uploaded_media.name
+                st.session_state.messages[selected_chat].append({
+                    "sender": st.session_state.username,
+                    "type": media_kind,
+                    "content": media_object,
+                    "time": time_stamp
+                })
+            except Exception as e:
+                st.error(f"خطأ في المرفق: {e}")
+                
         st.rerun()
-    except Exception as e:
-        st.error(f"خطأ في المرفق: {e}")
+st.markdown('</div>', unsafe_allow_html=True)
     
