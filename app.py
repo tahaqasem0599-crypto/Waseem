@@ -1,247 +1,191 @@
-import streamlit as st
-import datetime
-from PIL import Image
+import 'package:flutter/material.dart';
 
-# 1. إعدادات الشاشة الكاملة لتطبيق تليجرام
-st.set_page_config(
-    page_title="تليجرام - Telegram Web",
-    page_icon="✈️",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-# 2. هندسة واجهة المستخدم (CSS) لمحاكاة تطبيق تليجرام الداكن والشعار الرسمي
-st.markdown("""
-<style>
-/* تهيئة الخلفية الرسمية للتليجرام الداكن */
-.stApp {
-    background-color: #0e1621 !important;
-    color: #f5f5f5 !important;
+void main() {
+  runApp(const TelegramApp());
 }
 
-/* تخصيص القائمة الجانبية وقائمة المحادثات */
-[data-testid="stSidebar"] {
-    background-color: #17212b !important;
-    border-right: 1px solid #101921 !important;
+class TelegramApp extends StatelessWidget {
+  const TelegramApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Telegram Pro',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: const Color(0xFF0E1621), // لون خلفية تليجرام الداكن الاصلية
+      ),
+      home: const ChatScreen(),
+    );
+  }
 }
 
-/* تصفير مسافات التدفق لمنع انزلاق العناصر */
-.block-container {
-    padding-top: 1rem !important;
-    padding-bottom: 9rem !important;
-    max-width: 100% !important;
+class ChatScreen extends StatefulWidget {
+  const ChatScreen({Key? key}) : super(key: key);
+
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
 }
 
-/* هيدر تليجرام العلوي مع الشعار الدائري */
-.tg-header-container {
-    background-color: #17212b;
-    padding: 12px 20px;
-    border-bottom: 1px solid #101921;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-.tg-logo-img {
-    width: 40px;
-    height: 40px;
-    background-image: url('https://wikimedia.org');
-    background-size: cover;
-    background-position: center;
-    border-radius: 50%;
-}
+class _ChatScreenState extends State<ChatScreen> {
+  // قائمة الرسائل المخزنة حياً في الذاكرة لتحديث الشاشة فوراً
+  final List<Map<String, String>> _messages = [
+    {"sender": "Waseem", "content": "أهلاً بك في عالم Flutter الخارق! واجهة تليجرام أصبحت أصلية 100% الآن 🔥", "time": "03:15 ص", "isMe": "true"},
+    {"sender": "أبو أحمد", "content": "ما شاء الله! الواجهة انسيابية جداً والفقاعات ثابتة وسريعة.", "time": "03:16 ص", "isMe": "false"}
+  ];
 
-/* ساحة المحادثة وعرض فقاعات الرسائل */
-.chat-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 10px;
-}
+  final TextEditingController _textController = TextEditingController();
 
-/* تصميم الفقاعة الأساسي */
-.message-bubble {
-    padding: 10px 14px;
-    border-radius: 14px;
-    max-width: 75%;
-    margin-bottom: 5px;
-    line-height: 1.4;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-}
-
-/* رسائلك أنت (باللون الأزرق على اليمين) */
-.my-msg {
-    background-color: #2b5278 !important;
-    color: white !important;
-    margin-right: auto;
-    border-bottom-left-radius: 4px;
-    text-align: right;
-}
-
-/* رسائل الآخرين (باللون الرمادي على اليسار) */
-.other-msg {
-    background-color: #182533 !important;
-    color: #f5f5f5 !important;
-    margin-left: auto;
-    border-bottom-right-radius: 4px;
-    text-align: right;
-}
-
-.msg-info {
-    font-size: 11px;
-    color: #7f8c8d;
-    margin-top: 4px;
-    text-align: left;
-}
-.my-msg .msg-info {
-    color: #abc6e0;
-}
-
-/* تخصيص وتثبيت شريط الإدخال في الأسفل تماماً على شاشات الهاتف */
-.bottom-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: #17212b;
-    padding: 12px 20px;
-    border-top: 1px solid #101921;
-    z-index: 9999;
-}
-
-/* تعديل حقل الكتابة الافتراضي ليدمج بشكل دائري سلس */
-div.stTextInput > div > div > input {
-    background-color: #0e1621 !important;
-    color: white !important;
-    border: 1px solid #101921 !important;
-    border-radius: 24px !important;
-    padding: 10px 18px !important;
-}
-
-/* إخفاء حواف مربع رفع الملفات واحتوائه بشكل نظيف */
-[data-testid="stFileUploader"] {
-    padding: 0 !important;
-    margin: 0 !important;
-}
-
-/* تحويل زر الإرسال الافتراضي إلى دائرة تحمل شعار تليجرام الفعلي المطور */
-div.stButton > button {
-    background-color: #2481cc !important;
-    background-image: url('https://wikimedia.org') !important;
-    background-repeat: no-repeat !important;
-    background-position: center !important;
-    background-size: 55% !important;
-    color: transparent !important;
-    border-radius: 50% !important;
-    width: 44px !important;
-    height: 44px !important;
-    border: none !important;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-}
-div.stButton > button:hover {
-    background-color: #288fde !important;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# 3. تهيئة البيانات بشكل سليم ومستقر
-if "messages" not in st.session_state:
-    st.session_state.messages = {
-        "🍉 تلجرام غزة": [
-            {"sender": "Waseem", "type": "text", "content": "أهلاً يا شباب، تم إضافة شعار تليجرام الرسمي للواجهة وتحديث الأزرار! ✈️🔥", "time": "03:15 ص"},
-            {"sender": "أبو أحمد", "type": "text", "content": "ما شاء الله الواجهة ممتازة ومثالية الآن بشعار تليجرام الأصلي.", "time": "03:16 ص"}
-        ],
-        "📢 الأخبار العاجلة": [
-            {"sender": "المشرف", "type": "text", "content": "تغطية مستمرة وحية للأوضاع الميدانية على مدار الساعة.", "time": "02:00 ص"}
-        ]
+  // دالة إرسال الرسالة الفورية
+  void _sendMessage() {
+    if (_textController.text.trim().isNotEmpty) {
+      setState(() {
+        _messages.add({
+          "sender": "Waseem",
+          "content": _textController.text,
+          "time": "04:00 ص",
+          "isMe": "true"
+        });
+      });
+      _textController.clear(); // تصفير الحقل فوراً لمنع التكرار نهائياً
     }
+  }
 
-if "username" not in st.session_state:
-    st.session_state.username = "Waseem"
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      // 1. هيدر تليجرام العلوي الأصلي الثابت
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF17212B),
+        elevation: 1,
+        title: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Row(
+            children: [
+              const CircleAvatar(
+                backgroundColor: Color(0xFF2B5278),
+                child: Text('🍉', style: TextStyle(fontSize: 20)),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('تلجرام غزة المطور', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                  Text('متصل الآن • مدعوم بـ Flutter', style: TextStyle(fontSize: 12, color: const Color(0xFF5288C1))),
+                ],
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          IconButton(onPressed: () {}, icon: const Icon(Icons.more_vert, color: Colors.grey)),
+        ],
+      ),
+      
+      // 2. ساحة المحادثة وشريط الإدخال السفلي
+      body: Column(
+        children: [
+          // ساحة الرسائل القابلة للتمرير بسلاسة هائلة
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: _messages.length,
+              itemBuilder: (context, index) {
+                final msg = _messages[index];
+                final isMe = msg["isMe"] == "true";
 
-# 4. بناء القائمة الجانبية (شريط المحادثات) مع شعار التليجرام الرئيسي
-st.sidebar.markdown("""
-<div style="display:flex; align-items:center; gap:10px; padding:10px;">
-    <div style="width:35px; height:35px; background-image: url('https://wikimedia.org'); background-size:cover; border-radius:50%;"></div>
-    <h2 style="margin:0; color:#5288c1; font-weight:bold; font-size:22px;">Telegram</h2>
-</div>
-""", unsafe_allow_html=True)
+                return Align(
+                  alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isMe ? const Color(0xFF2B5278) : const Color(0xFF182533), // ألوان تليجرام للفقاعات
+                      borderRadius: BorderRadius.only(
+                        topLeft: const Radius.circular(14),
+                        topRight: const Radius.circular(14),
+                        bottomLeft: isMe ? const Radius.circular(14) : const Radius.circular(4),
+                        bottomRight: isMe ? const Radius.circular(4) : const Radius.circular(14),
+                      ),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 2, offset: const Offset(0, 1))
+                      ]
+                    ),
+                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (!isMe)
+                          Text(msg["sender"]!, style: const TextStyle(color: Color(0xFF5288C1), fontSize: 12, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 4),
+                        Text(msg["content"]!, style: const TextStyle(color: Colors.white, fontSize: 15)),
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text(msg["time"]!, style: TextStyle(color: isMe ? const Color(0xFFABC6E0) : Colors.grey, fontSize: 10)),
+                            if (isMe) ...[
+                              const SizedBox(width: 4),
+                              const Icon(Icons.done_all, color: Color(0xFFABC6E0), size: 14), // علامتين الصح الزرقاء
+                            ]
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
 
-chat_keys = list(st.session_state.messages.keys())
-selected_chat = st.sidebar.selectbox("اختر المحادثة النشطة:", chat_keys)
-st.session_state.username = st.sidebar.text_input("⚙️ اسمك في المحادثة:", value=st.session_state.username)
-
-# زر بسيط لتنظيف الشاشة إذا أردت البدء من جديد
-if st.sidebar.button("🗑️ تنظيف وإعادة تهيئة المحادثة"):
-    st.session_state.messages[selected_chat] = st.session_state.messages[selected_chat][:2]
-    st.rerun()
-
-# 5. عرض هيدر تليجرام مع الشعار الرسمي في الشاشة الرئيسية
-st.markdown(f"""
-<div class="tg-header-container">
-    <div class="tg-logo-img"></div>
-    <div>
-        <h3 style="margin:0; color:white; font-size:16px;">{selected_chat}</h3>
-        <span style="color:#5288c1; font-size:12px;">متصل الآن • تطبيق مخصص</span>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-# 6. ساحة عرض الرسائل والفقاعات بشكل آمن ونظيف
-st.markdown('<div class="chat-container">', unsafe_allow_html=True)
-for msg in st.session_state.messages[selected_chat]:
-    is_me = msg["sender"] == st.session_state.username
-    bubble_class = "my-msg" if is_me else "other-msg"
-    sender_title = "أنت" if is_me else msg["sender"]
-    
-    st.markdown(f"""
-    <div class="message-bubble {bubble_class}">
-        <div style="font-size:12px; font-weight:bold; color:#5288c1; margin-bottom:3px;">{sender_title}</div>
-        <div>{msg['content']}</div>
-        <div class="msg-info">{msg['time']} {'✓✓' if is_me else ''}</div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    if msg["type"] == "image" and not isinstance(msg["content"], str):
-        st.image(msg["content"], width=280)
-st.markdown('</div>', unsafe_allow_html=True)
-
-# 7. صندوق إرسال ومرفقات محكم الإغلاق وثابت بأسفل المتصفح لسهولة الاستخدام
-st.markdown('<div class="bottom-bar">', unsafe_allow_html=True)
-with st.form(key="telegram_secure_form", clear_on_submit=True):
-    txt_col, file_col, btn_col = st.columns()
-    
-    with txt_col:
-        user_text = st.text_input("الرسالة النصية", placeholder="اكتب رسالة...", label_visibility="collapsed")
-    with file_col:
-        uploaded_media = st.file_uploader("إرفاق ملف", type=["png", "jpg", "jpeg", "pdf"], label_visibility="collapsed")
-    with btn_col:
-        btn_trigger = st.form_submit_button("إرسال")
-
-    if btn_trigger:
-        time_stamp = datetime.datetime.now().strftime("%I:%M %p").replace("AM", "ص").replace("PM", "م")
-        
-        if user_text:
-            st.session_state.messages[selected_chat].append({
-                "sender": st.session_state.username,
-                "type": "text",
-                "content": user_text,
-                "time": time_stamp
-            })
-            
-        if uploaded_media is not None:
-            media_kind = "image" if uploaded_media.type.startswith("image/") else "file"
-            try:
-                media_object = Image.open(uploaded_media) if media_kind == "image" else uploaded_media.name
-                st.session_state.messages[selected_chat].append({
-                    "sender": st.session_state.username,
-                    "type": media_kind,
-                    "content": media_object,
-                    "time": time_stamp
-                })
-            except Exception as e:
-                st.error(f"خطأ في المرفق: {e}")
-                
-        st.rerun()
-st.markdown('</div>', unsafe_allow_html=True)
+          // 3. صندوق الإدخال السفلي الدائري المطابق لتليجرام والمثبت على الهاتف
+          Container(
+            color: const Color(0xFF17212B),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              children: [
+                IconButton(onPressed: () {}, icon: const Icon(Icons.attach_file, color: Colors.grey)),
+                Expanded(
+                  child: Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: TextField(
+                      controller: _textController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'اكتب رسالة...',
+                        hintStyle: const TextStyle(color: Colors.grey),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: BorderSide.none,
+                        ),
+                        fillColor: const Color(0xFF0E1621),
+                        filled: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // زر الإرسال الدائري الأزرق
+                GestureDetector(
+                  onTap: _sendMessage,
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF2481CC),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.send, color: Colors.white, size: 20),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
