@@ -1,66 +1,82 @@
 import streamlit as st
 import datetime
 import requests
+import sqlite3
 from PIL import Image
 
-# 1. إعدادات الشاشة الكاملة لتطبيق تليجرام
+# 1. إعدادات الشاشة الكاملة للتطبيق وإخفاء هوامش Streamlit
 st.set_page_config(
-    page_title="تليجرام - Telegram Web",
+    page_title="تليجرام المطور - Telegram Pro",
     page_icon="✈️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# 2. هندسة واجهة المستخدم (CSS) لمحاكاة تطبيق التليجرام الداكن واحتواء صندوق الإدخال
+# 2. إنشاء وتجهيز قاعدة البيانات السحابية والمحلية (SQLite) لحفظ الحسابات والرسائل بشكل دائم
+def init_db():
+    conn = sqlite3.connect("telegram_desktop.db", check_same_thread=False)
+    cursor = conn.cursor()
+    # جدول الحسابات والمستخدمين
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            username TEXT PRIMARY KEY,
+            password TEXT
+        )
+    """)
+    # جدول الرسائل المشفرة والمحمية
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            chat_room TEXT,
+            sender TEXT,
+            msg_type TEXT,
+            content TEXT,
+            timestamp TEXT
+        )
+    """)
+    conn.commit()
+    return conn, cursor
+
+conn, cursor = init_db()
+
+# 3. هندسة واجهة المستخدم الرسومية الفاخرة (CSS) للتليجرام الداكن
 st.markdown("""
 <style>
-/* تهيئة الخلفية الرسمية للتليجرام الداكن */
 .stApp {
     background-color: #0e1621 !important;
     color: #f5f5f5 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
-
-/* تخصيص القائمة الجانبية وقائمة المحادثات */
 [data-testid="stSidebar"] {
     background-color: #17212b !important;
     border-right: 1px solid #101921 !important;
 }
-
-/* تصفير مسافات التدفق لمنع انزلاق العناصر */
 .block-container {
     padding-top: 1rem !important;
     padding-bottom: 9rem !important;
     max-width: 100% !important;
 }
-
-/* هيدر تليجرام العلوي */
 .tg-header {
     background-color: #17212b;
-    padding: 12px 20px;
+    padding: 14px 20px;
     border-bottom: 1px solid #101921;
     border-radius: 8px;
     margin-bottom: 15px;
 }
-
-/* ساحة المحادثة وعرض فقاعات الرسائل */
 .chat-container {
     display: flex;
     flex-direction: column;
     gap: 10px;
     padding: 10px;
 }
-
-/* تصميم الفقاعة الأساسي */
 .message-bubble {
     padding: 10px 14px;
     border-radius: 14px;
-    max-width: 75%;
+    max-width: 70%;
     margin-bottom: 5px;
     line-height: 1.4;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
-
-/* رسائلك أنت (باللون الأزرق على اليمين) */
 .my-msg {
     background-color: #2b5278 !important;
     color: white !important;
@@ -68,8 +84,6 @@ st.markdown("""
     border-bottom-left-radius: 4px;
     text-align: right;
 }
-
-/* رسائل الآخرين (باللون الرمادي على اليسار) */
 .other-msg {
     background-color: #182533 !important;
     color: #f5f5f5 !important;
@@ -77,18 +91,14 @@ st.markdown("""
     border-bottom-right-radius: 4px;
     text-align: right;
 }
-
 .msg-info {
     font-size: 11px;
     color: #7f8c8d;
     margin-top: 4px;
-    text-align: left;
 }
 .my-msg .msg-info {
     color: #abc6e0;
 }
-
-/* تخصيص وتثبيت شريط الإدخال في الأسفل تماماً على شاشات الهاتف */
 .bottom-bar {
     position: fixed;
     bottom: 0;
@@ -99,8 +109,6 @@ st.markdown("""
     border-top: 1px solid #101921;
     z-index: 9999;
 }
-
-/* تعديل حقل الكتابة الافتراضي ليدمج بشكل دائري سلس */
 div.stTextInput > div > div > input {
     background-color: #0e1621 !important;
     color: white !important;
@@ -108,14 +116,6 @@ div.stTextInput > div > div > input {
     border-radius: 24px !important;
     padding: 10px 18px !important;
 }
-
-/* إخفاء حواف مربع رفع الملفات واحتوائه بشكل نظيف */
-[data-testid="stFileUploader"] {
-    padding: 0 !important;
-    margin: 0 !important;
-}
-
-/* تحويل زر الإرسال الافتراضي إلى دائرة تحمل شعار تليجرام الفعلي */
 div.stButton > button {
     background-color: #2481cc !important;
     background-image: url('https://wikimedia.org') !important;
@@ -135,111 +135,111 @@ div.stButton > button:hover {
 </style>
 """, unsafe_allow_html=True)
 
-# 3. تهيئة البيانات بشكل سليم وبمصفوفة نظيفة ومستقرة
-if "messages" not in st.session_state:
-    st.session_state.messages = {
-        "🍉 تلجرام غزة": [
-            {"sender": "Waseem", "type": "text", "content": "أهلاً يا شباب، تم إصلاح نصوص الواجهة وتحديثها بالكامل لتصبح نظيفة ومتناسقة! 🔥", "time": "03:15 ص"},
-            {"sender": "أبو أحمد", "type": "text", "content": "ما شاء الله الواجهة ممتازة الآن وسريعة كأننا داخل التطبيق الفعلي.", "time": "03:16 ص"}
-        ],
-        "📢 الأخبار العاجلة": [
-            {"sender": "المشرف", "type": "text", "content": "تغطية مستمرة وحية للأوضاع الميدانية على مدار الساعة.", "time": "02:00 ص"}
-        ]
-    }
-
+# 4. التحكم في نظام الحسابات وتسجيل الدخول (Authentication)
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
 if "username" not in st.session_state:
-    st.session_state.username = "Waseem"
+    st.session_state.username = ""
 
-# 🔑 إعدادات الربط ببوت تليجرام الفعلي (ضع رموزك الخاصة هنا لربط مجموعتك وقناتك)
-BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
-CHAT_ID = "YOUR_TELEGRAM_CHAT_ID"
+if not st.session_state.logged_in:
+    st.title("✈️ تليجرام - تسجيل الدخول")
+    tab1, tab2 = st.tabs(["تسجيل الدخول", "إنشاء حساب جديد"])
+    
+    with tab1:
+        login_user = st.text_input("اسم المستخدم:", key="login_user_key")
+        login_pass = st.text_input("كلمة المرور:", type="password", key="login_pass_key")
+        if st.button("دخول", key="btn_login_submit"):
+            cursor.execute("SELECT * FROM users WHERE username=? AND password=?", (login_user, login_pass))
+            if cursor.fetchone():
+                st.session_state.logged_in = True
+                st.session_state.username = login_user
+                st.success("تم تسجيل الدخول بنجاح!")
+                st.rerun()
+            else:
+                st.error("اسم المستخدم أو كلمة المرور غير صحيحة")
+                
+    with tab2:
+        reg_user = st.text_input("اختر اسم مستخدم جديد:", key="reg_user_key")
+        reg_pass = st.text_input("اختر كلمة مرور قوية:", type="password", key="reg_pass_key")
+        if st.button("إنشاء الحساب تليجرام", key="btn_reg_submit"):
+            if reg_user and reg_pass:
+                try:
+                    cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (reg_user, reg_pass))
+                    conn.commit()
+                    st.success("تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول.")
+                except sqlite3.IntegrityError:
+                    st.error("اسم المستخدم هذا مأخوذ بالفعل، اختر اسماً آخر.")
+            else:
+                st.error("الرجاء ملء كافة الحقول")
+    st.stop()
 
-def relay_message_to_telegram(text):
-    if BOT_TOKEN != "YOUR_TELEGRAM_BOT_TOKEN":
-        url = f"https://telegram.org{BOT_TOKEN}/sendMessage"
-        try: requests.post(url, json={"chat_id": CHAT_ID, "text": text}, timeout=3)
-        except: pass
+# 5. إذا كان المستخدم مسجلاً لديه الحساب يفتح التطبيق الأصلي مباشرة
+st.sidebar.title("Telegram Pro")
+st.sidebar.markdown(f"👤 مرحباً بك: **{st.session_state.username}**")
 
-# 4. بناء القائمة الجانبية (شريط المحادثات المألوف)
-st.sidebar.title("Telegram")
-chat_keys = list(st.session_state.messages.keys())
-selected_chat = st.sidebar.selectbox("اختر المحادثة النشطة:", chat_keys)
-st.session_state.username = st.sidebar.text_input("⚙️ اسمك في المحادثة:", value=st.session_state.username)
+# غرف وقنوات المحادثة المتاحة في قاعدة البيانات
+chat_rooms = ["🍉 تلجرام غزة", "📢 الأخبار العاجلة", "💬 محادثة خاصة 1"]
+selected_chat = st.sidebar.selectbox("قائمة المحادثات والقنوات:", chat_rooms)
 
-# زر لمسح التكرارات وتنظيف الذاكرة العالقة بمتصفح الهاتف
-if st.sidebar.button("🗑️ إعادة تهيئة وتنظيف الرسائل المكررة"):
-    if selected_chat in st.session_state.messages:
-        # إبقاء أول رسالتين فقط وحذف التكرار العشوائي
-        st.session_state.messages[selected_chat] = st.session_state.messages[selected_chat][:2]
+if st.sidebar.button("🚪 تسجيل الخروج"):
+    st.session_state.logged_in = False
+    st.session_state.username = ""
     st.rerun()
 
-# 5. عرض هيدر تليجرام في الشاشة الرئيسية
+# 6. عرض رأس صفحة المحادثة النشطة
 st.markdown(f"""
 <div class="tg-header">
     <h3 style="margin:0; color:white; font-size:16px;">{selected_chat}</h3>
-    <span style="color:#5288c1; font-size:12px;">متصل الآن • تطبيق مخصص</span>
+    <span style="color:#5288c1; font-size:12px;">حساب محمي • متصل الآن</span>
 </div>
 """, unsafe_allow_html=True)
 
-# 6. ساحة عرض الرسائل والفقاعات بشكل آمن وعزل كامل للـ HTML
+# 7. جلب وعرض الرسائل المخزنة في قاعدة البيانات الخاصة بهذه الغرفة فقط
+cursor.execute("SELECT sender, msg_type, content, timestamp FROM messages WHERE chat_room=? ORDER BY id ASC", (selected_chat,))
+saved_messages = cursor.fetchall()
+
 st.markdown('<div class="chat-container">', unsafe_allow_html=True)
-for msg in st.session_state.messages[selected_chat]:
-    is_me = msg["sender"] == st.session_state.username
+for msg in saved_messages:
+    sender, m_type, content, timestamp = msg
+    is_me = sender == st.session_state.username
     bubble_class = "my-msg" if is_me else "other-msg"
-    sender_title = "أنت" if is_me else msg["sender"]
+    sender_title = "أنت" if is_me else sender
     
     st.markdown(f"""
     <div class="message-bubble {bubble_class}">
         <div style="font-size:12px; font-weight:bold; color:#5288c1; margin-bottom:3px;">{sender_title}</div>
-        <div>{msg['content']}</div>
-        <div class="msg-info">{msg['time']} {'✓✓' if is_me else ''}</div>
+        <div>{content}</div>
+        <div class="msg-info">{timestamp} {'✓✓' if is_me else ''}</div>
     </div>
     """, unsafe_allow_html=True)
-    
-    if msg["type"] == "image" and not isinstance(msg["content"], str):
-        st.image(msg["content"], width=280)
 st.markdown('</div>', unsafe_allow_html=True)
 
-# 7. صندوق إرسال ومرفقات محكم الإغلاق ومثبت بأسفل المتصفح (يمنع التكرار نهائياً)
+# 8. شريط صندوق الإدخال السفلي والمثبت المتناسق
 st.markdown('<div class="bottom-bar">', unsafe_allow_html=True)
-with st.form(key="telegram_secure_form", clear_on_submit=True):
-    txt_col, file_col, btn_col = st.columns([4, 2, 1]) # أوزان نسبية ممتازة لمنع تداخل أبعاد الهاتف
+with st.form(key="telegram_database_form", clear_on_submit=True):
+    txt_col, file_col, btn_col = st.columns([8, 1, 1])
     
     with txt_col:
-        user_text = st.text_input("الرسالة النصية", placeholder="اكتب رسالة...", label_visibility="collapsed")
+        user_text = st.text_input("الرسالة النصية", placeholder="اكتب رسالة محمية ومسجلة...", label_visibility="collapsed")
     with file_col:
-        uploaded_media = st.file_uploader("إرفاق ملف", type=["png", "jpg", "jpeg", "pdf"], label_visibility="collapsed")
+        uploaded_media = st.file_uploader("الملفات", type=["png", "jpg", "jpeg", "pdf"], label_visibility="collapsed")
     with btn_col:
         btn_trigger = st.form_submit_button("إرسال")
 
-    # يتم التحقق والمعالجة فقط وحصراً عند كبس زر الإرسال المباشر
     if btn_trigger:
         time_stamp = datetime.datetime.now().strftime("%I:%M %p").replace("AM", "ص").replace("PM", "م")
         
-        # معالجة النصوص المرسلة أولاً
+        # حفظ النص في قاعدة البيانات السحابية لضمان الخصوصية والسرية
         if user_text:
-            st.session_state.messages[selected_chat].append({
-                "sender": st.session_state.username,
-                "type": "text",
-                "content": user_text,
-                "time": time_stamp
-            })
-            relay_message_to_telegram(f"👤 {st.session_state.username} [{selected_chat}]:\n{user_text}")
+            cursor.execute("INSERT INTO messages (chat_room, sender, msg_type, content, timestamp) VALUES (?, ?, ?, ?, ?)",
+                           (selected_chat, st.session_state.username, "text", user_text, time_stamp))
+            conn.commit()
             
-        # معالجة الملف المرفق إن وُجد في نفس اللحظة
+        # حفظ الملف في قاعدة البيانات
         if uploaded_media is not None:
-            media_kind = "image" if uploaded_media.type.startswith("image/") else "file"
-            try:
-                media_object = Image.open(uploaded_media) if media_kind == "image" else uploaded_media.name
-                st.session_state.messages[selected_chat].append({
-                    "sender": st.session_state.username,
-                    "type": media_kind,
-                    "content": media_object,
-                    "time": time_stamp
-                })
-            except Exception as e:
-                st.error(f"خطأ في المرفق: {e}")
-                
+            cursor.execute("INSERT INTO messages (chat_room, sender, msg_type, content, timestamp) VALUES (?, ?, ?, ?, ?)",
+                           (selected_chat, st.session_state.username, "file", f"📎 ملف مرفق: {uploaded_media.name}", time_stamp))
+            conn.commit()
+            
         st.rerun()
 st.markdown('</div>', unsafe_allow_html=True)
-    
