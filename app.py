@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. إنشاء وتجهيز قاعدة البيانات السحابية والمحلية (SQLite) لحفظ الحسابات والرسائل بشكل دائم
+# 2. إنشاء وتجهيز قاعدة البيانات (SQLite) لحفظ الحسابات والرسائل بشكل دائم
 def init_db():
     conn = sqlite3.connect("telegram_desktop.db", check_same_thread=False)
     cursor = conn.cursor()
@@ -23,7 +23,7 @@ def init_db():
             password TEXT
         )
     """)
-    # جدول الرسائل المشفرة والمحمية
+    # جدول الرسائل المحمية
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -39,9 +39,10 @@ def init_db():
 
 conn, cursor = init_db()
 
-# 3. هندسة واجهة المستخدم الرسومية الفاخرة (CSS) للتليجرام الداكن
+# 3. هندسة واجهة المستخدم الرسومية الفاخرة (CSS) للتليجرام الداكن والشريط السفلي المثبت
 st.markdown("""
 <style>
+/* تهيئة الخلفية الرسمية للتليجرام الداكن */
 .stApp {
     background-color: #0e1621 !important;
     color: #f5f5f5 !important;
@@ -116,6 +117,12 @@ div.stTextInput > div > div > input {
     border-radius: 24px !important;
     padding: 10px 18px !important;
 }
+/* إخفاء حواف حقل الملف الافتراضي */
+[data-testid="stFileUploader"] {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+/* زر إرسال دائري بشعار تليجرام */
 div.stButton > button {
     background-color: #2481cc !important;
     background-image: url('https://wikimedia.org') !important;
@@ -173,11 +180,11 @@ if not st.session_state.logged_in:
                 st.error("الرجاء ملء كافة الحقول")
     st.stop()
 
-# 5. إذا كان المستخدم مسجلاً لديه الحساب يفتح التطبيق الأصلي مباشرة
+# 5. واجهة التطبيق الرئيسية بعد تسجيل الدخول
 st.sidebar.title("Telegram Pro")
 st.sidebar.markdown(f"👤 مرحباً بك: **{st.session_state.username}**")
 
-# غرف وقنوات المحادثة المتاحة في قاعدة البيانات
+# قائمة غرف المحادثة والقنوات المتاحة
 chat_rooms = ["🍉 تلجرام غزة", "📢 الأخبار العاجلة", "💬 محادثة خاصة 1"]
 selected_chat = st.sidebar.selectbox("قائمة المحادثات والقنوات:", chat_rooms)
 
@@ -185,6 +192,22 @@ if st.sidebar.button("🚪 تسجيل الخروج"):
     st.session_state.logged_in = False
     st.session_state.username = ""
     st.rerun()
+
+# ----------------- ⚙️ قسم إعدادات الربط ببوت التليجرام الفعلي -----------------
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 🔌 ربط البوت الخارجي")
+# يمكنك كتابة التوكن والـ ID الحقيقيين هنا مباشرة في الكود أو إدخالهما من الشريط الجانبي
+BOT_TOKEN = st.sidebar.text_input("Telegram Bot Token:", value="YOUR_BOT_TOKEN", type="password")
+CHAT_ID = st.sidebar.text_input("Telegram Chat ID:", value="YOUR_CHAT_ID")
+
+def relay_message_to_telegram_server(text):
+    if BOT_TOKEN != "YOUR_BOT_TOKEN" and CHAT_ID != "YOUR_CHAT_ID":
+        url = f"https://telegram.org{BOT_TOKEN}/sendMessage"
+        try:
+            requests.post(url, json={"chat_id": CHAT_ID, "text": text}, timeout=3)
+        except Exception:
+            pass
+# -------------------------------------------------------------------------
 
 # 6. عرض رأس صفحة المحادثة النشطة
 st.markdown(f"""
@@ -229,17 +252,20 @@ with st.form(key="telegram_database_form", clear_on_submit=True):
     if btn_trigger:
         time_stamp = datetime.datetime.now().strftime("%I:%M %p").replace("AM", "ص").replace("PM", "م")
         
-        # حفظ النص في قاعدة البيانات السحابية لضمان الخصوصية والسرية
+        # حفظ النص في قاعدة البيانات وبثه عبر البوت
         if user_text:
             cursor.execute("INSERT INTO messages (chat_room, sender, msg_type, content, timestamp) VALUES (?, ?, ?, ?, ?)",
                            (selected_chat, st.session_state.username, "text", user_text, time_stamp))
             conn.commit()
+            # إرسال الرسالة الحية لسيرفر التليجرام الخارجي
+            relay_message_to_telegram_server(f"👤 {st.session_state.username} [{selected_chat}]:\n{user_text}")
             
         # حفظ الملف في قاعدة البيانات
         if uploaded_media is not None:
             cursor.execute("INSERT INTO messages (chat_room, sender, msg_type, content, timestamp) VALUES (?, ?, ?, ?, ?)",
                            (selected_chat, st.session_state.username, "file", f"📎 ملف مرفق: {uploaded_media.name}", time_stamp))
             conn.commit()
+            relay_message_to_telegram_server(f"👤 {st.session_state.username} [{selected_chat}]: أرفق ملفاً باسم {uploaded_media.name}")
             
         st.rerun()
 st.markdown('</div>', unsafe_allow_html=True)
