@@ -1,277 +1,329 @@
 import streamlit as st
 import datetime
 import requests
-import streamlit.components.v1 as components
+import time
 from PIL import Image
 
-# 1. إعدادات الصفحة العامة بالاسم الجديد للتطبيق
+# 1. إعدادات الشاشة الكاملة للتطبيق وإخفاء قوائم Streamlit الافتراضية
 st.set_page_config(
-    page_title="تلجرام غزة - Telegram Gaza",
-    page_icon="📢",
+    page_title="تليجرام - Telegram Web",
+    page_icon="✈️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# 2. تخصيص واجهة المستخدم (CSS) لدعم المظهر الجديد، الألوان، والاتجاه العربي
+# 2. هندسة الواجهة الرسومية بالكامل (CSS Injection) لتطابق التليجرام الأصلي 100%
 st.markdown("""
-    <style>
-    /* دعم الكتابة من اليمين إلى اليسار بالتطبيق كامل */
-    .stApp {
-        background-color: #0e1621;
-        color: #ffffff;
-        direction: rtl;
-        text-align: right;
-    }
-    /* تخصيص الشريط الجانبي */
-    [data-testid="stSidebar"] {
-        background-color: #17212b;
-        border-left: 1px solid #101921;
-        border-right: none;
-        direction: rtl;
-    }
-    /* تصميم شعار التطبيق الاحترافي */
-    .app-logo {
-        background: linear-gradient(135deg, #2488cb 0%, #00b4d8 100%);
-        width: 70px;
-        height: 70px;
-        border-radius: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 10px auto;
-        box-shadow: 0px 4px 15px rgba(0, 180, 216, 0.4);
-        font-family: 'Arial', sans-serif;
-        font-weight: bold;
-        font-size: 32px;
-        color: white;
-        position: relative;
-    }
-    .app-logo::after {
-        content: '✈';
-        font-size: 16px;
-        position: absolute;
-        bottom: 8px;
-        right: 8px;
-        transform: rotate(-45deg);
-        color: #e0f2fe;
-    }
-    /* فقاعات رسائل المستخدم */
-    .user-msg {
-        background-color: #2b5278;
-        padding: 12px 15px;
-        border-radius: 15px 15px 15px 0px;
-        margin: 8px 0;
-        max-width: 70%;
-        float: right;
-        clear: both;
-        color: white;
-        direction: rtl;
-        text-align: right;
-    }
-    /* فقاعات رسائل الأعضاء الآخرين */
-    .other-msg {
-        background-color: #182533;
-        padding: 12px 15px;
-        border-radius: 15px 15px 0px 15px;
-        margin: 8px 0;
-        max-width: 70%;
-        float: left;
-        clear: both;
-        border: 1px solid #202b36;
-        color: white;
-        direction: rtl;
-        text-align: right;
-    }
-    /* وقت إرسال الرسائل */
-    .msg-time {
-        font-size: 0.75rem;
-        color: #7f91a4;
-        margin-top: 5px;
-        text-align: left;
-    }
-    /* تصميم رأس المحادثة */
-    .chat-header {
-        background-color: #17212b;
-        padding: 15px;
-        border-radius: 10px;
-        border-bottom: 2px solid #24303f;
-        margin-bottom: 20px;
-        direction: rtl;
-    }
-    </style>
+<style>
+/* تهيئة الخلفية الرسمية للتليجرام الداكن */
+.stApp {
+    background-color: #0e1621 !important;
+    color: #f5f5f5 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* تخصيص القائمة الجانبية بالكامل */
+[data-testid="stSidebar"] {
+    background-color: #17212b !important;
+    border-right: 1px solid #101921 !important;
+}
+
+/* تصفير هوامش البناء لملء الشاشة */
+.block-container {
+    padding-top: 0rem !important;
+    padding-bottom: 7rem !important;
+    max-width: 100% !important;
+}
+
+/* تصميم هيدر المحادثة العلوي الثابت */
+.tg-main-header {
+    background-color: #17212b;
+    padding: 14px 24px;
+    border-bottom: 1px solid #101921;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+}
+.tg-chat-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #ffffff;
+    margin: 0;
+}
+.tg-chat-status {
+    font-size: 13px;
+    color: #5288c1;
+}
+
+/* قائمة الدردشات الجانبية الأنيقة */
+.sidebar-chat-item {
+    padding: 12px;
+    margin: 4px 8px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: transparent;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.sidebar-chat-item:hover {
+    background-color: #202b36;
+}
+.chat-item-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.chat-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: #5288c1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    font-size: 18px;
+}
+.chat-meta-info h4 {
+    margin: 0;
+    font-size: 15px;
+    color: white;
+}
+.chat-meta-info p {
+    margin: 2px 0 0 0;
+    font-size: 13px;
+    color: #7f8c8d;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+.badge-unread {
+    background-color: #45ae55;
+    color: white;
+    border-radius: 50%;
+    padding: 3px 7px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+/* ساحة المحادثة الرئيسية وبناء الفقاعات المتطورة */
+.chat-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px;
+    background-color: #0e1621;
+}
+
+.bubble {
+    padding: 10px 14px;
+    border-radius: 16px;
+    max-width: 60%;
+    font-size: 15px;
+    line-height: 1.4;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* رسائلك أنت (تظهر على اليمين باللون الأزرق الرسمي للتليجرام) */
+.bubble-me {
+    background-color: #2b5278 !important;
+    color: white !important;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+}
+
+/* رسائل المستلمين الآخرين (تظهر على اليسار باللون الرمادي الداكن المريح) */
+.bubble-other {
+    background-color: #182533 !important;
+    color: #f5f5f5 !important;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+}
+
+.bubble-sender {
+    font-size: 12px;
+    font-weight: bold;
+    color: #5288c1;
+    margin-bottom: 3px;
+}
+
+.bubble-footer {
+    font-size: 10px;
+    color: #7f8c8d;
+    align-self: flex-end;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.bubble-me .bubble-footer {
+    color: #abc6e0;
+}
+
+/* تثبيت صندوق الإدخال الفاخر أسفل الشاشة تماماً */
+.premium-input-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #17212b;
+    padding: 16px 30px;
+    border-top: 1px solid #101921;
+    z-index: 9999;
+}
+
+/* تعديل شكل حقل الكتابة الافتراضي ليدمج بشكل دائري */
+div.stTextInput > div > div > input {
+    background-color: #0e1621 !important;
+    color: white !important;
+    border: 1px solid #101921 !important;
+    border-radius: 24px !important;
+    padding: 12px 20px !important;
+}
+
+/* تحويل زر الإرسال الافتراضي إلى دائرة تحمل شعار تليجرام بالكامل مع إلغاء حواف الإطار الافتراضي لـ Streamlit */
+div.stButton > button {
+    background-color: #2481cc !important;
+    background-image: url('https://wikimedia.org') !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: 60% !important;
+    color: transparent !important; /* إخفاء النص النصي المكتوب داخل الزر */
+    border-radius: 50% !important;
+    width: 48px !important;
+    height: 48px !important;
+    border: none !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+div.stButton > button:hover {
+    background-color: #288fde !important;
+}
+</style>
 """, unsafe_allow_html=True)
 
-# 3. سكريبت منع خمول وانطفاء الشاشة في الخلفية تلقائياً
-js_wake_lock = """
-<script>
-let wakeLock = null;
-async function requestWakeLock() {
-    try {
-        if ('wakeLock' in navigator) {
-            wakeLock = await navigator.wakeLock.request('screen');
-            console.log('Screen Wake Lock is active!');
-        }
-    } catch (err) {
-        console.error(`${err.name}, ${err.message}`);
-    }
-}
-requestWakeLock();
-document.addEventListener('visibilitychange', async () => {
-    if (wakeLock !== null && document.visibilityState === 'visible') {
-        requestWakeLock();
-    }
-});
-</script>
-"""
-components.html(js_wake_lock, height=0, width=0)
-
-# 4. دالة مخصصة لإرسال الرسائل إلى خوادم التلجرام الحقيقي عبر الـ API
-def send_to_telegram_bot(token, chat_id, text):
-    if token and chat_id:
-        url = f"https://telegram.org{token}/sendMessage"
-        payload = {"chat_id": chat_id, "text": text}
-        try:
-            requests.post(url, json=payload)
-        except Exception as e:
-            pass
-
-# 5. إدارة جلسة البيانات وحفظ الرسائل داخلياً
+# 3. تهيئة قواعد البيانات المؤقتة لتشغيل المحادثات حياً وبدون انقطاع
 if "messages" not in st.session_state:
     st.session_state.messages = {
-        "القناة الإخبارية العاجلة 📢": [
-            {"sender": "المشرف", "type": "text", "content": "أهلاً بكم في قناة الأخبار العاجلة لقطاع غزة.", "time": "09:00 ص"},
-            {"sender": "المشرف", "type": "text", "content": "تحديث: تفعيل الرابط التعليمي الجديد لطلابنا بنجاح.", "time": "10:15 ص"}
+        "🍉 تلجرام غزة": [
+            {"sender": "Waseem", "type": "text", "content": "أهلاً يا شباب، هذا هو التحديث البرمجي الأقوى للتطبيق لتطابق النسخة الأصلية بالملّي! 🔥", "time": "03:15 ص"},
+            {"sender": "أبو أحمد", "type": "text", "content": "ما شاء الله واجهة خرافية وسريعة جداً كأننا داخل التليجرام الفعلي.", "time": "03:16 ص"}
         ],
-        "مجموعة المطورين العرب 💻": [
-            {"sender": "أحمد", "type": "text", "content": "السلام عليكم يا شباب، كيف برمجت واجهة التلجرام هذه؟", "time": "11:00 ص"},
-            {"sender": "المطور وسيم", "type": "text", "content": "وعليكم السلام، برمجتها باستخدام Streamlit و Python بكل سهولة!", "time": "11:02 ص"}
+        "📢 الأخبار العاجلة": [
+            {"sender": "المشرف", "type": "text", "content": "تغطية مستمرة وحية للأوضاع الميدانية على مدار الساعة.", "time": "02:00 ص"}
+        ],
+        "⚙️ الدعم الفني المطور": [
+            {"sender": "الدعم", "type": "text", "content": "مرحباً بك وسيم، السيرفر يعمل الآن بكفاءة 100%.", "time": "أمس"}
         ]
     }
 
-# 6. شاشة تسجيل الدخول وإنشاء الحساب
 if "username" not in st.session_state:
-    st.markdown("<h1 style='text-align: center; color: #4ba3e3;'>🌐 بوابة دخول تلجرام غزة</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #7f91a4;'>مرحباً بك في النسخة المطورة والمخصصة لقطاع غزة</p>", unsafe_allow_html=True)
-    st.write("يرجى إدخال بياناتك لإنشاء حسابك والدخول:")
+    st.session_state.username = "Waseem"
+
+# 🔑 إعدادات الربط ببوت التليجرام للبث المباشر (استبدلها ببياناتك لتفعيل الإرسال الحقيقي لقناتك)
+BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
+CHAT_ID = "YOUR_TELEGRAM_CHAT_ID"
+
+def relay_message_to_telegram_server(text):
+    if BOT_TOKEN != "YOUR_TELEGRAM_BOT_TOKEN":
+        url = f"https://telegram.org{BOT_TOKEN}/sendMessage"
+        try: requests.post(url, json={"chat_id": CHAT_ID, "text": text}, timeout=3)
+        except: pass
+
+# 4. بناء الشريط الجانبي الفاخر (قائمة تليجرام الجانبية للدردشات)
+st.sidebar.markdown("<h2 style='text-align:center; color:#5288c1; font-weight:bold; margin-bottom:20px;'>Telegram</h2>", unsafe_allow_html=True)
+
+st.sidebar.markdown("<p style='color:#7f8c8d; padding-left:12px; font-size:13px;'>الدردشات الأخيرة</p>", unsafe_allow_html=True)
+
+chat_keys = list(st.session_state.messages.keys())
+
+# محاكاة القائمة الحقيقية بالتطبيق
+for key in chat_keys:
+    last_msg = st.session_state.messages[key][-1]["content"] if st.session_state.messages[key] else "لا توجد رسائل"
+    avatar_letter = key if len(key) > 2 else "T"
     
-    username_input = st.text_input("👤 اسم المستخدم:", value="المطور وسيم")
-    avatar_option = st.selectbox("🖼️ اختر نوع الحساب والرمز الشخصي:", ["💻 مطور برمجيات", "🚀 رائد أعمال", "🛡️ مشرف أمان", "👤 مستخدم عام"])
-    
-    if st.button("تسجيل الدخول والبدء فورا 🚀"):
-        if username_input.strip() != "":
-            st.session_state.username = username_input.strip()
-            st.session_state.avatar = avatar_option
-            st.rerun()
-        else:
-            st.error("الرجاء إدخال اسم مستخدم صالح!")
-    st.stop()
-
-# ----------------- الشريط الجانبي (Sidebar) -----------------
-# عرض الشعار الجديد واسم التطبيق بالتصميم الأنيق
-st.sidebar.markdown("""
-    <div class="app-logo">G</div>
-    <h2 style='color: #4ba3e3; text-align: center; margin-top:0; font-size:22px;'>تلجرام غزة</h2>
-    <p style='color: #7f91a4; text-align: center; font-size:12px; margin-top:-10px;'>Telegram Gaza Edition</p>
-""", unsafe_allow_html=True)
-
-st.sidebar.markdown(f"👤 **المستكشف الحالي:** {st.session_state.username} ({st.session_state.avatar})")
-st.sidebar.success("⚡ وضع عدم السكون نشط: الشاشة ستبقى مضيئة.")
-st.sidebar.markdown("---")
-
-# ربط تطبيقك ببوت تلجرام حقيقي
-st.sidebar.markdown("### 🤖 ربط API للبوت الحقيقي")
-with st.sidebar.expander("⚙️ إعدادات ربط البوت"):
-    bot_token = st.sidebar.text_input("Bot Token:", type="password", help="ضع توكن البوت الذي حصلت عليه من BotFather")
-    telegram_chat_id = st.sidebar.text_input("Chat ID / القناة:", help="مثال: @my_channel أو الآي دي الرقمي")
-    st.sidebar.caption("عند تفعيل هذا القسم، أي رسالة ترسلها هنا ستنتقل مباشرة إلى قناتك أو مجموعتك على التلجرام الحقيقي!")
-
-st.sidebar.markdown("---")
-
-# قائمة القنوات والمجموعات
-st.sidebar.markdown("### 💬 القنوات والمجموعات")
-chat_options = list(st.session_state.messages.keys())
-selected_chat = st.sidebar.radio("اختر المحادثة أو القناة:", chat_options)
-
-# إنشاء أقسام جديدة (تم إصلاح القوس هنا)
-st.sidebar.markdown("---")
-st.sidebar.markdown("### ➕ إنشاء قسم جديد")
-new_chat_name = st.sidebar.text_input("اسم القناة/المجموعة الجديدة:")
-chat_type = st.sidebar.selectbox("النوع:", ["قناة عامة 📢", "مجموعة دردشة 👥"])
-
-if st.sidebar.button("إنشاء الآن"):
-    if new_chat_name:
-        full_name = f"{new_chat_name} {chat_type}"
-        if full_name not in st.session_state.messages:
-            st.session_state.messages[full_name] = []
-            st.sidebar.success(f"تم إنشاء {full_name} بنجاح!")
-            st.rerun()
-    else:
-        st.sidebar.error("الرجاء إدخال اسم!")
-
-# ----------------- نافذة الدردشة الرئيسية -----------------
-st.markdown(f"""
-    <div class="chat-header">
-        <h3 style="margin:0; color:#4ba3e3;">{selected_chat}</h3>
-        <p style="margin:5px 0 0 0; color:#7f91a4; font-size:14px;">نسخة تواصل متكاملة ومحسنة تدعم المراسلة الفورية والوسائط المتعددة</p>
-    </div>
-""", unsafe_allow_html=True)
-
-chat_placeholder = st.container()
-with chat_placeholder:
-    for msg in st.session_state.messages[selected_chat]:
-        alignment_class = "user-msg" if msg["sender"] == st.session_state.username else "other-msg"
-        
-        st.markdown(f"""
-            <div class="{alignment_class}">
-                <strong>{msg["sender"]}</strong><br>
-        """, unsafe_allow_html=True)
-        
-        if msg["type"] == "text":
-            st.write(msg["content"])
-        elif msg["type"] == "image":
-            st.image(msg["content"], width=250)
-        elif msg["type"] == "file":
-            st.info(f"📁 ملف مرفق: {msg['content']}")
-            
-        st.markdown(f"""
-                <div class="msg-time">{msg["time"]}</div>
+    st.sidebar.markdown(f"""
+    <div class="sidebar-chat-item">
+        <div class="chat-item-left">
+            <div class="chat-avatar">{avatar_letter}</div>
+            <div class="chat-meta-info">
+                <h4>{key}</h4>
+                <p>{last_msg}</p>
             </div>
-        """, unsafe_allow_html=True)
+        </div>
+        <div>
+            <span class="badge-unread">1</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-st.markdown("<div style='clear:both; margin-bottom:40px;'></div>", unsafe_allow_html=True)
+st.sidebar.markdown("---")
+selected_chat = st.sidebar.selectbox("تبديل غرف المحادثة النشطة:", chat_keys)
+st.session_state.username = st.sidebar.text_input("⚙️ اسمك داخل المحادثات:", value=st.session_state.username)
 
-# ----------------- صندوق إرسال الرسائل والمرفقات -----------------
-st.markdown("---")
+# 5. عرض هيدر تليجرام الأصلي في أعلى نافذة الشات النشطة
+st.markdown(f"""
+<div class="tg-main-header">
+    <div class="header-info">
+        <h3 class="tg-chat-title">{selected_chat}</h3>
+        <span class="tg-chat-status">{'3 أعضاء نشطين • متصل الآن' if 'غزة' in selected_chat else 'قناة رسمية موثقة'}</span>
+    </div>
+    <div style="color: #7f8c8d; font-size: 24px; cursor: pointer; font-weight:bold;">⋮</div>
+</div>
+""", unsafe_allow_html=True)
 
-with st.form(key="send_message_form", clear_on_submit=True):
-    col1, col2 = st.columns()
-    with col1:
-        user_input = st.text_input("اكتب رسالتك هنا...", placeholder="اكتب رسالة...", label_visibility="collapsed")
-    with col2:
-        submit_button = st.form_submit_button(label="إرسال 🚀")
+# 6. ساحة التدفق الحي وعرض الفقاعات الرسمية الدائرية (Chat View Screen)
+st.markdown('<div class="chat-flow">', unsafe_allow_html=True)
 
-uploaded_file = st.file_uploader("📎 إرفاق ملف أو صورة إلى الدردشة الحالية:", type=["png", "jpg", "jpeg", "pdf", "txt", "zip"])
-
-if submit_button and user_input:
-    now = datetime.datetime.now().strftime("%I:%M %p").replace("AM", "ص").replace("PM", "م")
+for msg in st.session_state.messages[selected_chat]:
+    is_me = msg["sender"] == st.session_state.username
+    bubble_side_class = "bubble-me" if is_me else "bubble-other"
+    sender_title = "أنت" if is_me else msg["sender"]
     
-    st.session_state.messages[selected_chat].append({
-        "sender": st.session_state.username,
-        "type": "text",
-        "content": user_input,
-        "time": now
-    })
+    # فلترة آمنة لمنع اختلال الأقواس وحماية السينتكس
+    if msg["type"] == "text":
+        body_layout = f"<div>{msg['content']}</div>"
+    elif msg["type"] == "image":
+        body_layout = f"<div style='color:#5288c1; font-weight:bold;'>🖼️ صورة مرفقة في الدردشة</div>"
+    else:
+        body_layout = f"<div>📁 ملف مستند: {msg['content']}</div>"
+
+    # حقن الفقاعة المقفلة تماماً بإحكام هائل
+    st.markdown(f"""
+    <div class="bubble {bubble_side_class}">
+        {f'<div class="bubble-sender">{sender_title}</div>' if not is_me else ''}
+        {body_layout}
+        <div class="bubble-footer">
+            {msg['time']} { '✓✓' if is_me else '' }
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
-    if bot_token and telegram_chat_id:
-        full_tele_text = f"👤 {st.session_state.username} ({selected_chat}):\n{user_input}"
-        send_to_telegram_bot(bot_token, telegram_chat_id, full_tele_text)
+    # عرض ملفات الميديا الحقيقية المرفوعة أسفل الفقاعة مباشرة بداخل Streamlit
+    if msg["type"] == "image" and not isinstance(msg["content"], str):
+        st.image(msg["content"], width=320)
+
+st.markdown('</div>', unsafe_allow_html=True)
+
+# 7. صندوق إرسال الرسائل الفاخر والمثبت بالأسفل (Sticky Floating Actions Bar)
+st.markdown('<div class="premium-input-bar">', unsafe_allow_html=True)
+
+with st.form(key="tg_perfect_form", clear_on_submit=True):
+    txt_col, file_col, button_col = st.columns()
+    
+    with txt_col:
+        text_payload = st.text_input("الكتابة", placeholder="اكتب رسالتك المنسقة هنا...", label_visibility="collapsed")
+    
+    with file_col:
+        file_payload = st.file_uploader("الملفات", type=["png", "jpg", "jpeg", "pdf"], label_visibility="collapsed")
         
-    st.rerun()
-
-if uploaded_file is not None:
-    now = datetime.datetime.now().strftime("%I:%M %p").replace("AM", "ص").replace("PM", "م")
-    file_type = "image" if uploaded_file.type.startswith("image") else "file"
-    content_data = Image.open(uploaded_file) if file_type == "image" else uploaded_file.name
-    
-    st.session_state.messages[selected_chat].append({
-        
+    with button_col:
