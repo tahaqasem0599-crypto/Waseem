@@ -3,12 +3,18 @@ import streamlit as st
 # إعدادات الصفحة وهوية التطبيق الفخمة
 st.set_page_config(page_title="Waseem AI Auto-Sales", page_icon="🤖", layout="centered")
 
-# تحسينات المظهر والخطوط
+# تحسينات المظهر وجعل التطبيق يدعم اللغة العربية بشكل احترافي بالكامل
 st.markdown("""
     <style>
-    .title-text { color: #1e3a8a; text-align: center; font-size: 28px; font-weight: bold; font-family: 'Arial'; }
-    .footer-text { text-align: center; color: #64748b; font-size: 14px; margin-top: 50px; }
-    .response-box { background-color: #f1f5f9; padding: 15px; border-radius: 8px; border-right: 5px solid #38bdf8; color: #1e293b; }
+    @import url('https://googleapis.com');
+    body, .main, p, div, span, h1, h2, h3, input, textarea, button {
+        font-family: 'Tajawal', sans-serif !important;
+        direction: rtl !important;
+        text-align: right !important;
+    }
+    .title-text { color: #1e3a8a; text-align: center !important; font-size: 28px; font-weight: bold; width: 100%; display: block; }
+    .footer-text { text-align: center !important; color: #64748b; font-size: 14px; margin-top: 50px; width: 100%; display: block; }
+    .response-box { background-color: #f8fafc; padding: 20px; border-radius: 12px; border-right: 6px solid #2563eb; color: #1e293b; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); line-height: 1.8; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -25,15 +31,12 @@ if st.button("🚀 تفعيل وتوليد الرد الذكي للزبائن"):
     if product_name and product_price:
         st.success(f"✅ تم بنجاح ربط الذكاء الاصطناعي بمنتج: {product_name}")
         
-        # هندسة النص الذكي (Prompt Engineering) لتوليد رد تسويقي مقنع
+        # هندسة النص الذكي (Prompt Engineering) بتنسيق عربي مرتب ومحاذٍ لليمين
         ai_response = f"""
-        ✨ مرحباً بك يا فندم! يسعدنا اهتمامك بمنتجنا الفخم والمميز.
-        
-        🛍️ **{product_name}** متوفر الآن لدينا بأعلى جودة تفاصيلها كالتالي:
-        📝 {product_details if product_details else 'متوفر بألوان ومقاسات تناسب الجميع'}
-        
-        💰 **السعر المفاجأة:** {product_price} فقط! 
-        
+        ✨ <b>مرحباً بك يا فندم!</b> يسعدنا جداً اهتمامك بمنتجنا الفخم والمميز.<br><br>
+        🛍️ <b>{product_name}</b> متوفر الآن لدينا بأعلى جودة تفاصيلها كالتالي:<br>
+        📝 {product_details if product_details else 'متوفر بألوان ومقاسات تناسب الجميع'}<br><br>
+        💰 <b>السعر المفاجأة:</b> {product_price} فقط! <br><br>
         🔥 الكمية محدودة جداً والطلب عليه مرتفع اليوم، هل ترغب في حجز قطعتك وتأكيد الطلب الآن قبل نفاد الكمية؟
         """
         
