@@ -44,7 +44,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# تهيئة نظام الكاش في جلسة المستخدم (Session State)
+# تهيئة نظام الكاش في جلسة المستخدم لمنع اختفاء البيانات
 if "descriptions_cache" not in st.session_state:
     st.session_state.descriptions_cache = []
 
@@ -104,11 +104,11 @@ if st.button("🔥 تشغيل محرك الذكاء الاصطناعي وتول�
                 """
                 
                 if "فيسبوك" in platform_choice:
-                    prompt_text += "اجعل الأسلوب تفاعلياً، يركز على العائلة أو التوصيل، ويتضمن دعوة واضحة لاتخاذ إجراء لشراء المنتج مع إيموجيات جذابة."
+                    prompt_text += "اجعل الأسلوب تفاعلياً، يركز على العائلة أو التوصيل، ويتضمن دعوة واضحة لاتخاذ إجراء لشراء المنتج مع إيموجيات جذابة للفيسبوك."
                 elif "إنستغرام" in platform_choice:
-                    prompt_text += "اجعل الأسلوب عصرياً، فاخراً، وموجهاً لعشاق الموضة. في نهاية المنشور، أضف مجموعة مكونة من 10 إلى 15 هاشتاج نشطة في الملابس."
+                    prompt_text += "اجعل الأسلوب عصرياً، فاخراً، وموجهاً لعشاق الموضة على إنستغرام. في نهاية المنشور، أضف مجموعة مكونة من 10 إلى 15 هاشتاج نشطة في الملابس."
                 elif "تيك توك" in platform_choice:
-                    prompt_text += "ابدأ المنشور بـ 'خُطاف لجذب الانتباه' مثير جداً في أول 3 ثوانٍ. واقترح في سطر منفصل فكرة حركة فيديو سريعة تناسب استعراض هذه القطعة."
+                    prompt_text += "ابدأ المنشور بـ 'خُطاف لجذب الانتباه' مثير جداً يناسب تيك توك في أول 3 ثوانٍ. واقترح في سطر منفصل فكرة حركة فيديو سريعة تناسب استعراض هذه القطعة."
 
                 url = f"https://googleapis.com{api_key}"
 
@@ -138,12 +138,12 @@ if st.button("🔥 تشغيل محرك الذكاء الاصطناعي وتول�
                 response_data = response.json()
                 
                 if 'candidates' in response_data and response_data['candidates']:
-                    generated_text = response_data['candidates']['content']['parts'][0]['text']
+                    generated_text = response_data['candidates']['content']['parts']['text']
                     
                     st.success(f"✨ تم توليد وصف مخصص بنجاح!")
                     st.markdown(f"<div style='background-color: #f8fafc; padding: 20px; border-radius: 8px; border-right: 5px solid #2563eb; color: #1e293b; line-height: 1.6;'>{generated_text}</div>", unsafe_allow_html=True)
                     
-                    # تم إصلاح الخطأ هنا وتخزين اسم المنصة كنص نقي وثابت منعاً لأي تعارض لبث البيانات
+                    # تم إصلاح الحفظ الآمن هنا لمنع خطأ الـ KeyError تماماً
                     st.session_state.descriptions_cache.append({
                         "price": price_input,
                         "platform": platform_choice,
@@ -164,4 +164,4 @@ if st.button("🔥 تشغيل محرك الذكاء الاصطناعي وتول�
 
 st.write("---")
 st.markdown('<p class="footer-text">🌍 تم تصميم وتطوير النظام بواسطة المطور العالمي: وسيم نائل العطار 🌍</p>', unsafe_allow_html=True)
-                
+    
