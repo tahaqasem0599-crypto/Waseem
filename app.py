@@ -1,9 +1,10 @@
 import streamlit as st
 import requests
 import json
+import base64
 
 # 1. إعدادات الصفحة وهوية التطبيق العالمية #
-st.set_page_config(page_title="Waseem AI", page_icon="✨", layout="centered")
+st.set_page_config(page_title="Waseem AI - Clothing Store", page_icon="👕", layout="wide")
 
 # 2. تحسينات المظهر وتنسيق الـ RTL الفخم #
 st.markdown("""
@@ -19,7 +20,7 @@ st.markdown("""
     .subtitle-text { color: #64748b; text-align: center !important; }
     .footer-text { text-align: center !important; color: #94a3b8; font-size: 14px; margin-top: 50px; }
     
-    .stTextInput input, .stTextArea textarea {
+    .stTextInput input, .stTextArea textarea, .stSelectbox select {
         direction: rtl !important;
         text-align: right !important;
     }
@@ -30,52 +31,130 @@ st.markdown("""
         font-weight: bold;
         border-radius: 8px;
         border: none;
+        padding: 12px;
+    }
+    /* تنسيق الكاش في القائمة الجانبية */
+    .cache-box {
+        background-color: #f1f5f9;
         padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        border-right: 4px solid #2563eb;
+        font-size: 13px;
     }
     </style>
 """, unsafe_allow_html=True)
 
+# تهيئة نظام الكاش في جلسة المستخدم (Session State)
+if "descriptions_cache" not in st.session_state:
+    st.session_state.descriptions_cache = []
+
+# --- القائمة الجانبية (نظام الكاش وحفظ الأوصاف) ---
+with st.sidebar:
+    st.markdown("### 🗄️ الأوصاف المحفوظة سابقاً (Cache)")
+    if not st.session_state.descriptions_cache:
+        st.info("لا توجد أوصاف محفوظة حالياً.")
+    else:
+        for idx, item in enumerate(reversed(st.session_state.descriptions_cache)):
+            st.markdown(f"""
+            <div class="cache-box">
+                <strong>📦 السعر: {item['price']} | 📱 {item['platform']}</strong><br>
+                <small>{item['desc'][:60]}...</small>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button(f"📋 نسخ الوصف {len(st.session_state.descriptions_cache) - idx}", key=f"btn_{idx}"):
+                st.info("اضغط مرتين لنسخ النص المكتوب بالأسفل:")
+                st.text_area("النص الجاهز للنسخ:", value=item['desc'], key=f"copy_area_{idx}")
+
+# --- الواجهة الرئيسية للتطبيق ---
 st.markdown('<h1 class="title-text">✨ مساعد التوليد الذكي للملابس ✨</h1>', unsafe_allow_html=True)
-st.markdown('<p class="subtitle-text">توليد أفكار وأوصاف تسويقية فخمة باستخدام الذكاء الاصطناعي</p>', unsafe_allow_html=True)
+st.markdown('<p class="subtitle-text">توليد أفكار وأوصاف تسويقية فخمة مخصصة لمنصات التواصل الاجتماعي بالصور والنصوص</p>', unsafe_allow_html=True)
 st.write("---")
 
-# حقول المدخلات الأساسية فقط لمنع أي KeyError
-price_input = st.text_input("💰 سعر القطعة (بالشيكل أو الدولار):", value="10")
-details_input = st.text_area("📝 تفاصيل إضافية عن الملابس:", value="متوفر كل المقاسات وزبط الكلام من عندك")
+col1, col2 = st.columns([1, 1])
+
+with col1:
+    price_input = st.text_input("💰 سعر القطعة (بالشيكل أو الدولار):", value="10")
+    # ميزة اختيار منصة النشر المضافة حديثاً
+    platform_choice = st.selectbox("📱 اختر منصة النشر المستهدفة:", ["فيسبوك (Facebook)", "إنستغرام (Instagram)", "تيك توك (TikTok)"])
+    details_input = st.text_area("📝 تفاصيل إضافية (ألوان، مقاسات وخامات):", value="متوفر كل المقاسات وزبط الكلام من عندك")
+
+with col2:
+    uploaded_file = st.file_uploader("📸 ارفع صورة قطعة الملابس (اختياري):", type=["jpg", "jpeg", "png"])
+    if uploaded_file is not None:
+        st.image(uploaded_file, caption="الصورة المرفوعة بنجاح", use_column_width=True)
 
 st.write("---")
 
 if st.button("🔥 تشغيل محرك الذكاء الاصطناعي وتوليد الرد"):
-    # جلب المفتاح تلقائياً من الـ Secrets
     api_key = st.secrets.get("gemini_api_key", "").strip()
 
     if not api_key:
         st.error("⚠️ لم يتم العثور على مفتاح Gemini API في إعدادات الـ Secrets!")
     else:
-        with st.spinner("🔄 جاري الاتصال بالسيرفر وتوليد الوصف..."):
+        with st.spinner("🔄 جاري تحليل البيانات وتوليد الوصف الاحترافي للمنصة..."):
             try:
-                # الرابط المباشر والسريع للاتصال بقوقل
-                url = f"https://googleapis.com{api_key}"
                 headers = {'Content-Type': 'application/json'}
                 
-                prompt = f"""
-                أنت خبير تسويق رقمي محترف ومختص في التجارة الإلكترونية للملابس. 
-                اكتب وصف تسويقي فخم، وجذاب ومقنع جداً لقطعة ملابس بالمواصفات التالية:
-                - السعر المطلوب: {price_input}
-                - تفاصيل القطعة: {details_input}
-                اجعل الأسلوب مشوقاً ومناسباً للنشر الفوري على منصات التواصل الاجتماعي، مع استخدام عناوين منسقة وإيموجي فخمة.
+                # صياغة توجيه مخصص ومقنع جداً بناءً على اختيار المنصة
+                prompt_text = f"""
+                أنت خبير تسويق رقمي وكتابة إعلانات محترف متخصص في مبيعات الملابس على السوشيال ميديا.
+                قم بكتابة منشور تسويقي فخم ومقنع جداً لقطعة ملابس بالمواصفات التالية:
+                - السعر: {price_input}
+                - التفاصيل: {details_input}
+                
+                شروط الصياغة الإلزامية للمنصة المختارة [{platform_choice}]:
                 """
                 
-                payload = {"contents": [{"parts": [{"text": prompt}]}]}
-                
+                if "فيسبوك" in platform_choice:
+                    prompt_text += "اجعل الأسلوب تفاعلياً، يركز على العائلة أو التوصيل، ويتضمن دعوة واضحة لاتخاذ إجراء (Call to Action) مثل التعليق أو إرسال رسالة لشراء المنتج مع إيموجيات جذابة."
+                elif "إنستغرام" in platform_choice:
+                    prompt_text += "اجعل الأسلوب عصرية، فاخراً، وموجهاً لعشاق الموضة والأناقة. في نهاية المنشور، أضف مجموعة مكونة من 10 إلى 15 هاشتاج (Hashtags) قوية ونشطة متخصصة في الملابس والأزياء."
+                elif "تيك توك" in platform_choice:
+                    prompt_text += "ابدأ المنشور بـ 'خُطاف لجذب الانتباه' (Hook) مثير جداً في أول 3 ثوانٍ. اجعل النص حماسياً وقصيراً، وأقترح في سطر منفصل فكرة حركة أو لقطة فيديو سريعة تناسب استعراض هذه القطعة."
+
+                url = f"https://googleapis.com{api_key}"
+
+                # التحقق من وجود صورة وتجهيز الـ Payload المتوافق مع الرابط المباشر
+                if uploaded_file is not None:
+                    image_bytes = uploaded_file.read()
+                    base64_image = base64.b64encode(image_bytes).decode('utf-8')
+                    
+                    payload = {
+                        "contents": [{
+                            "parts": [
+                                {"text": prompt_text},
+                                {
+                                    "inline_data": {
+                                        "mime_type": uploaded_file.type,
+                                        "data": base64_image
+                                    }
+                                }
+                            ]
+                        }]
+                    }
+                else:
+                    payload = {
+                        "contents": [{"parts": [{"text": prompt_text}]}]
+                    }
+
                 response = requests.post(url, headers=headers, data=json.dumps(payload))
                 response_data = response.json()
                 
-                # فحص استجابة السيرفر وعرضها
                 if 'candidates' in response_data and response_data['candidates']:
                     generated_text = response_data['candidates']['content']['parts'][0]['text']
-                    st.success("✨ تم توليد الوصف التسويقي بنجاح!")
+                    
+                    st.success(f"✨ تم توليد وصف مخصص لمنصة {platform_choice} بنجاح!")
                     st.markdown(f"<div style='background-color: #f8fafc; padding: 20px; border-radius: 8px; border-right: 5px solid #2563eb; color: #1e293b; line-height: 1.6;'>{generated_text}</div>", unsafe_allow_html=True)
+                    
+                    # حفظ النتيجة تلقائياً في نظام الكاش مع تحديد المنصة والسعر
+                    st.session_state.descriptions_cache.append({
+                        "price": price_input,
+                        "platform": platform_choice.split()[0], # يأخذ الكلمة الأولى فقط مثل فيسبوك
+                        "desc": generated_text
+                    })
+                    st.rerun() # لإعادة إنعاش التطبيق وتحديث الكاش فوراً
+                    
                 elif 'error' in response_data:
                     st.error(f"❌ خطأ من سيرفر قوقل: {response_data['error']['message']}")
                 else:
@@ -89,4 +168,4 @@ if st.button("🔥 تشغيل محرك الذكاء الاصطناعي وتول�
 
 st.write("---")
 st.markdown('<p class="footer-text">🌍 تم تصميم وتطوير النظام بواسطة المطور العالمي: وسيم نائل العطار 🌍</p>', unsafe_allow_html=True)
-                    
+                
