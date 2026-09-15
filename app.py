@@ -1,5 +1,4 @@
 import streamlit as st
-import requests
 import google.generativeai as genai
 
 # إعدادات الصفحة وهوية التطبيق العالمية #
@@ -19,7 +18,6 @@ st.markdown("""
     .subtitle-text { color: #64748b; text-align: center !important; }
     .footer-text { text-align: center !important; color: #94a3b8; font-size: 14px; margin-top: 50px; }
     
-    /* تحسين اتجاه النصوص داخل حقول الإدخال والزر ليتناسب مع الواجهة العربية */
     .stTextInput input, .stTextArea textarea {
         direction: rtl !important;
         text-align: right !important;
@@ -34,62 +32,53 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# عنوان التطبيق
 st.markdown('<h1 class="title-text">✨ مساعد التوليد الذكي للملابس ✨</h1>', unsafe_allow_html=True)
 st.markdown('<p class="subtitle-text">توليد أفكار وأوصاف تسويقية فخمة باستخدام الذكاء الاصطناعي</p>', unsafe_allow_html=True)
 st.write("---")
 
-# الحقول الأساسية بناءً على واجهة تطبيقك
 price_input = st.text_input("💰 سعر القطعة (بالشيكل أو الدولار):", value="10")
 details_input = st.text_area("📝 تفاصيل إضافية (المقاسات المتوفرة، الألوان، خيارات الشحن):", value="متوفر كل المقاسات وزبط الكلام من عندك")
 
 st.write("---")
 
-# زر تشغيل المحرك
 if st.button("🔥 تشغيل محرك الذكاء الاصطناعي وتوليد الرد"):
-    # جلب المفتاح تلقائياً من Secrets بشكل مخفي وآمن
-    # سيبحث التطبيق أولاً في Secrets عن متغير باسم gemini_api_key
+    # جلب المفتاح تلقائياً من الإعدادات السريّة
     if "gemini_api_key" in st.secrets:
-        api_key = st.secrets["gemini_api_key"]
+        api_key = st.secrets["gemini_api_key"].strip()
     else:
         api_key = None
 
     if not api_key:
         st.error("⚠️ لم يتم العثور على مفتاح Gemini API في إعدادات التطبيق (Secrets)!")
-        st.info("يا وسيم، تأكد من إضافة `gemini_api_key = 'مفتاحك_هنا'` في لوحة تحكم Streamlit Cloud.")
     else:
         with st.spinner("🔄 جاري الاتصال بالذكاء الاصطناعي وتوليد الوصف التسويقي..."):
             try:
-                # 1. تهيئة إعدادات المفتاح وتطهيره من أي مسافات زائدة
-                genai.configure(api_key=api_key.strip())
+                # تحديث طريقة التهيئة لدعم جميع أنواع المفاتيح (الداخلية والخارجية)
+                genai.configure(api_key=api_key)
                 
-                # 2. استدعاء النموذج المستقر والسريع
+                # استخدام النموذج الافتراضي المستقر والمحدث لعام 2026
                 model = genai.GenerativeModel('gemini-1.5-flash')
                 
-                # 3. صياغة البرومبت التسويقي باحترافية بناءً على مدخلاتك
                 prompt = f"""
                 أنت خبير تسويق رقمي وكتابة إعلانات محترف.
                 قم بكتابة وصف تسويقي فخم، جذاب ومقنع جداً لقطعة ملابس بالمواصفات التالية:
                 - السعر: {price_input}
                 - تفاصيل إضافية: {details_input}
                 
-                اجعل الأسلوب مشوقاً ومناسباً لوسائل التواصل الاجتماعي (استخدم إيموجي مناسبة وعناوين فرعية).
+                اجعل الأسلوب مشوقاً ومناسباً لوسائل التواصل الاجتماعي مع إيموجي وعناوين فرعية فخمة.
                 """
                 
-                # 4. طلب توليد المحتوى
                 response = model.generate_content(prompt)
                 
-                # 5. عرض النتيجة بنجاح في الواجهة
                 st.success("✨ تم توليد الوصف التسويقي بنجاح!")
-                st.markdown(f"<div style='background-color: #f8fafc; padding: 20px; border-radius: 8px; border-right: 5px solid #2563eb;'>{response.text}</div>", unsafe_allow_html=True)
+                st.markdown(f"<div style='background-color: #f8fafc; padding: 20px; border-radius: 8px; border-right: 5px solid #2563eb; color: #1e293b; font-weight: 500;'>{response.text}</div>", unsafe_allow_html=True)
                 
             except Exception as e:
-                # معالجة الخطأ بذكاء وعرض تفاصيله للمطور دون توقف التطبيق
                 st.error("⚠️ عذراً، حدث خطأ أثناء الاتصال بالذكاء الاصطناعي.")
-                st.warning("تأكد من أن مفتاح الـ API المضاف في الـ Secrets صحيح وصالح للعمل.")
+                st.warning("تأكد من أن المفتاح المضاف في الـ Secrets صحيح.")
                 with st.expander("🛠️ تفاصيل الخطأ البرمجي (للمطور وسيم):"):
                     st.code(str(e))
 
-# تذييل الصفحة الخاص بك بشكل منسق واحترافي
 st.write("---")
 st.markdown('<p class="footer-text">🌍 تم تصميم وتطوير النظام بواسطة المطور العالمي: وسيم نائل العطار 🌍</p>', unsafe_allow_html=True)
+        
