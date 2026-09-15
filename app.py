@@ -33,7 +33,6 @@ st.markdown("""
         border: none;
         padding: 12px;
     }
-    /* تنسيق الكاش في القائمة الجانبية */
     .cache-box {
         background-color: #f1f5f9;
         padding: 10px;
@@ -71,11 +70,10 @@ st.markdown('<h1 class="title-text">✨ مساعد التوليد الذكي ل�
 st.markdown('<p class="subtitle-text">توليد أفكار وأوصاف تسويقية فخمة مخصصة لمنصات التواصل الاجتماعي بالصور والنصوص</p>', unsafe_allow_html=True)
 st.write("---")
 
-col1, col2 = st.columns([1, 1])
+col1, col2 = st.columns(2)
 
 with col1:
     price_input = st.text_input("💰 سعر القطعة (بالشيكل أو الدولار):", value="10")
-    # ميزة اختيار منصة النشر المضافة حديثاً
     platform_choice = st.selectbox("📱 اختر منصة النشر المستهدفة:", ["فيسبوك (Facebook)", "إنستغرام (Instagram)", "تيك توك (TikTok)"])
     details_input = st.text_area("📝 تفاصيل إضافية (ألوان، مقاسات وخامات):", value="متوفر كل المقاسات وزبط الكلام من عندك")
 
@@ -96,7 +94,6 @@ if st.button("🔥 تشغيل محرك الذكاء الاصطناعي وتول�
             try:
                 headers = {'Content-Type': 'application/json'}
                 
-                # صياغة توجيه مخصص ومقنع جداً بناءً على اختيار المنصة
                 prompt_text = f"""
                 أنت خبير تسويق رقمي وكتابة إعلانات محترف متخصص في مبيعات الملابس على السوشيال ميديا.
                 قم بكتابة منشور تسويقي فخم ومقنع جداً لقطعة ملابس بالمواصفات التالية:
@@ -107,15 +104,14 @@ if st.button("🔥 تشغيل محرك الذكاء الاصطناعي وتول�
                 """
                 
                 if "فيسبوك" in platform_choice:
-                    prompt_text += "اجعل الأسلوب تفاعلياً، يركز على العائلة أو التوصيل، ويتضمن دعوة واضحة لاتخاذ إجراء (Call to Action) مثل التعليق أو إرسال رسالة لشراء المنتج مع إيموجيات جذابة."
+                    prompt_text += "اجعل الأسلوب تفاعلياً، يركز على العائلة أو التوصيل، ويتضمن دعوة واضحة لاتخاذ إجراء لشراء المنتج مع إيموجيات جذابة."
                 elif "إنستغرام" in platform_choice:
-                    prompt_text += "اجعل الأسلوب عصرية، فاخراً، وموجهاً لعشاق الموضة والأناقة. في نهاية المنشور، أضف مجموعة مكونة من 10 إلى 15 هاشتاج (Hashtags) قوية ونشطة متخصصة في الملابس والأزياء."
+                    prompt_text += "اجعل الأسلوب عصرياً، فاخراً، وموجهاً لعشاق الموضة. في نهاية المنشور، أضف مجموعة مكونة من 10 إلى 15 هاشتاج نشطة في الملابس."
                 elif "تيك توك" in platform_choice:
-                    prompt_text += "ابدأ المنشور بـ 'خُطاف لجذب الانتباه' (Hook) مثير جداً في أول 3 ثوانٍ. اجعل النص حماسياً وقصيراً، وأقترح في سطر منفصل فكرة حركة أو لقطة فيديو سريعة تناسب استعراض هذه القطعة."
+                    prompt_text += "ابدأ المنشور بـ 'خُطاف لجذب الانتباه' مثير جداً في أول 3 ثوانٍ. واقترح في سطر منفصل فكرة حركة فيديو سريعة تناسب استعراض هذه القطعة."
 
                 url = f"https://googleapis.com{api_key}"
 
-                # التحقق من وجود صورة وتجهيز الـ Payload المتوافق مع الرابط المباشر
                 if uploaded_file is not None:
                     image_bytes = uploaded_file.read()
                     base64_image = base64.b64encode(image_bytes).decode('utf-8')
@@ -144,16 +140,16 @@ if st.button("🔥 تشغيل محرك الذكاء الاصطناعي وتول�
                 if 'candidates' in response_data and response_data['candidates']:
                     generated_text = response_data['candidates']['content']['parts'][0]['text']
                     
-                    st.success(f"✨ تم توليد وصف مخصص لمنصة {platform_choice} بنجاح!")
+                    st.success(f"✨ تم توليد وصف مخصص بنجاح!")
                     st.markdown(f"<div style='background-color: #f8fafc; padding: 20px; border-radius: 8px; border-right: 5px solid #2563eb; color: #1e293b; line-height: 1.6;'>{generated_text}</div>", unsafe_allow_html=True)
                     
-                    # حفظ النتيجة تلقائياً في نظام الكاش مع تحديد المنصة والسعر
+                    # تم إصلاح الخطأ هنا وتخزين اسم المنصة كنص نقي وثابت منعاً لأي تعارض لبث البيانات
                     st.session_state.descriptions_cache.append({
                         "price": price_input,
-                        "platform": platform_choice.split()[0], # يأخذ الكلمة الأولى فقط مثل فيسبوك
+                        "platform": platform_choice,
                         "desc": generated_text
                     })
-                    st.rerun() # لإعادة إنعاش التطبيق وتحديث الكاش فوراً
+                    st.rerun()
                     
                 elif 'error' in response_data:
                     st.error(f"❌ خطأ من سيرفر قوقل: {response_data['error']['message']}")
