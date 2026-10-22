@@ -2,7 +2,3 @@ Flask==3.0.2
 openai==1.12.0
 requests==2.31.0
 gunicorn==21.2.0
-
-# FORCE_RENDER_CACHE_CLEAR_UPDATE_OCT_2026_VERSION_FLASK_MIGRATION
-
-
