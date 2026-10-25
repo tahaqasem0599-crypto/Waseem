@@ -1,90 +1,139 @@
+import os
 import time
 import requests
 import google.generativeai as genai
 from datetime import datetime
 
-# 1. إعدادات المفاتيح والروابط (توضع مرة واحدة فقط)
-GEMINI_API_KEY = "ضع_هنا_مفتاح_جيميني_المجاني"
-WORDPRESS_URL = "https://yourwebsite.com"
-WP_USERNAME = "admin_username"
-WP_APP_PASSWORD = "xxxx xxxx xxxx xxxx" # كلمة مرور التطبيقات من ووردبريس
+# ==================== 1. الإعدادات الشاملة الآمنة ومفاتيح الربط ====================
+SYSTEM_CONFIG = {
+    "google_account": "tahaqasem0599-crypto",
+    "developer_name": "Waseem Al-Attar",
+    
+    # 🔐 تعديل أمان جوهري: قراءة المفتاح بشكل سري من السيرفر مباشرة دون كتابته في الكود
+    "gemini_api_key": os.environ.get("GEMINI_API_KEY"),
+    
+    "wordpress_posts_url": "https://yourwebsite.com",
+    "wp_username": "admin",
+    "wp_app_password": "xxxx xxxx xxxx xxxx", 
+    "interval_sleep_seconds": 28800
+}
 
-# تهيئة محرك ذكاء جوجل الاصطناعي
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel('gemini-pro')
+# التحقق من وجود المفتاح السري في السيرفر لمنع توقف البرنامج
+if not SYSTEM_CONFIG["gemini_api_key"]:
+    print("❌ خطأ أمان: مفتاح GEMINI_API_KEY غير موجود في إعدادات بيئة السيرفر (Environment Variables)!")
+else:
+    # تفعيل محرك الذكاء الاصطناعي العالمي من قوقل بشكل آمن
+    genai.configure(api_key=SYSTEM_CONFIG["gemini_api_key"])
+    model = genai.GenerativeModel('gemini-pro')
 
-def generate_automated_article(topic):
-    """توليد مقال احترافي متوافق مع السيو تلقائياً"""
+# ==================== 2. بنك الكلمات المفتاحية العالمية الأكثر ربحاً (SEO) ====================
+trending_topics = [
+    "How to build a fully automated online business in 2026",
+    "Best free AI tools for content creation and marketing",
+    "How to use Gemini API for automated blogging step by step",
+    "The future of AI-powered design tools for creators",
+    "How to automate daily tasks using Python scripts",
+    "Top 10 AI applications transforming digital marketing",
+    "How to generate high-quality images with AI for free",
+    "The best AI writing assistants for SEO bloggers",
+    "How to create faceless video content using AI tools",
+    "Unlocking passive income through AI automation workflows",
+    "Best front-end development frameworks to learn today",
+    "How to create a stunning portfolio using HTML, CSS, and JS",
+    "Top design secrets for high-converting landing pages",
+    "How to build interactive web apps using Streamlit",
+    "Essential visual identity tips for luxury brands",
+    "How to optimize website speed for better Google ranking",
+    "The ultimate guide to clean UI/UX design patterns",
+    "Best tools for digital artists and graphic designers",
+    "How to customize WordPress sites using clean code",
+    "Top web design trends dominating the internet right now",
+    "How to start a successful global dropshipping store with zero budget",
+    "Best digital products to design and sell online for passive income",
+    "How to get high-paying clients on freelance platforms like Mostaql",
+    "The complete guide to selling digital art worldwide",
+    "Top ecommerce platforms for international selling",
+    "How to create and sell premium invitation templates",
+    "Strategies to scale your freelance design business to 5k a month",
+    "How to manage product inventory for online retail stores",
+    "Best print-on-demand products for graphic designers",
+    "How to promote your digital services internationally without ads",
+    "How to secure digital wallets and prevent online transaction fraud",
+    "Understanding secure payment gateways for automated websites",
+    "The guide to receiving international wire transfers safely",
+    "How online banking apps manage secure payment tracking",
+    "The importance of automated cybersecurity for small web apps",
+    "How to track online sales and store analytics efficiently",
+    "Best practices for digital budgeting and automated savings",
+    "How smart contracts protect digital goods transactions",
+    "The future of mobile wallets and digital payments",
+    "How to audit your code for security bugs and vulnerabilities",
+    "How to run background scripts on free cloud servers",
+    "Setting up cron jobs for scheduled automated scripts",
+    "The ultimate guide to managing git repositories via mobile",
+    "How to deploy Python web apps to Render and Vercel",
+    "Best free cloud hosting services for personal projects",
+    "How to read and parse API responses using JavaScript and Python",
+    "Setting up automated web scrapers for global news trends",
+    "How to prevent your cloud application from entering sleep mode",
+    "Essential developer tools for writing code on the go",
+    "How to integrate third-party APIs into your software projects"
+]
+
+# ==================== 3. المحركات التنفيذية والربط السحابي الذكي ====================
+def generate_advanced_seo_article(topic):
+    if not SYSTEM_CONFIG["gemini_api_key"]:
+        return None
     prompt = f"""
-    Write a comprehensive, professional, and SEO-optimized article about '{topic}'.
-    The article must include:
-    - An engaging title
-    - Catchy subheadings (H2, H3)
-    - Detailed informative paragraphs
-    - High-traffic keywords related to the topic
-    Format the entire output directly in clean HTML tags (e.g., <h2>, <p>).
-    Do not include any conversational text or markdown. Jump straight to the article.
+    Write a comprehensive, viral, and deeply informative article in English about the topic: '{topic}'.
+    The article must be highly professional, structured for search engines, and engaging for readers.
+    Output the entire response directly using clean HTML tags (<h1>, <h2>, <p>, <ul>, <li>).
     """
     try:
         response = model.generate_content(prompt)
         return response.text
     except Exception as e:
-        print(f"خطأ في توليد المحتوى: {e}")
+        print(f"⚠️ [خطأ في توليد المحتوى]: {e}")
         return None
 
-def publish_to_wordpress(title, content):
-    """نشر المقال مباشرة على الموقع بدون تدخل بشري"""
-    credentials = (WP_USERNAME, WP_APP_PASSWORD)
-    payload = {
-        "title": title,
-        "content": content,
-        "status": "publish", # نشر فوري ومباشر
-        "categories": [1]    # رقم القسم الافتراضي في موقعك
-    }
-    
+def publish_automated_post(title, html_content):
+    credentials = (SYSTEM_CONFIG["wp_username"], SYSTEM_CONFIG["wp_app_password"])
+    payload = {"title": title, "content": html_content, "status": "publish"}
     try:
-        res = requests.post(WORDPRESS_URL, json=payload, auth=credentials)
-        if res.status_config == 201 or res.status_code == 200:
-            print(f"🎉 تم بنجاح نشر المقال تلقائياً: {title}")
+        response = requests.post(SYSTEM_CONFIG["wordpress_posts_url"], json=payload, auth=credentials)
+        if response.status_code in:
+            print(f"✅ [نشر ناجح]: تم بنجاح ضخ ونشر المقال تلقائياً: [{title}]")
         else:
-            print(f"فشل النشر الرقمي. كود الاستجابة: {res.status_code}")
+            print(f"❌ [فشل في النشر]: كود الحالة: {response.status_code}")
     except Exception as e:
-        print(f"خطأ أثناء الاتصال بالموقع: {e}")
+        print(f"⚠️ [خطأ اتصال سحابي]: فشل الاتصال بموقعك: {e}")
 
-# قائمة مؤتمتة متجددة للمواضيع المستهدفة (يمكن ربطها بـ API للأخبار والترندات لاحقاً)
-trending_topics = [
-    "Artificial Intelligence trends in 2027",
-    "Best front-end web development tools",
-    "How to automate online businesses with zero budget",
-    "Graphic design secrets for high-converting ads"
-]
-
-def start_infinite_automation():
-    print("==========================================")
-    print("🚀 تم إطلاق نظام النشر الذاتي المؤتمت بالكامل...")
-    print(f"⏰ وقت البدء: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("==========================================")
+# ==================== 4. الماكينة المستمرة لإدارة الأتمتة الكاملة ====================
+def start_infinite_system():
+    print("==================================================")
+    print("🚀 تم إطلاق محرك الأتمتة المطور والمغلق بالكامل...")
+    print(f"👤 المطور المسؤول: {SYSTEM_CONFIG['developer_name']}")
+    print(f"📡 معرف الحساب الحامي: {SYSTEM_CONFIG['google_account']}")
+    print("==================================================")
     
-    index = 0
+    if not SYSTEM_CONFIG["gemini_api_key"]:
+        print("🛑 توقف النظام: يرجى إضافة المفتاح في لوحة تحكم السيرفر أولاً.")
+        return
+        
+    current_index = 0
+    total_topics = len(trending_topics)
+    
     while True:
-        # اختيار موضوع من القائمة بالترتيب
-        current_topic = trending_topics[index % len(trending_topics)]
-        print(f"\n[🔍] البدء في معالجة وكتابة موضوع: {current_topic}")
+        target_topic = trending_topics[current_index % total_topics]
+        print(f"\n[📝] بدء معالجة العنوان المربح: {target_topic}")
         
-        # 1. توليد المقال بالذكاء الاصطناعي
-        article_html = generate_automated_article(current_topic)
+        article_body = generate_advanced_seo_article(target_topic)
+        if article_body:
+            publish_automated_post(title=target_topic, html_content=article_body)
         
-        if article_html:
-            # 2. النشر التلقائي على الموقع
-            publish_to_wordpress(title=current_topic, content=article_html)
-        
-        # الانتقال للموضوع التالي
-        index += 1
-        
-        # الانتظار لمدة 8 ساعات (28800 ثانية) قبل كتابة ونشر المقال التالي تلقائياً
-        # هذا يضمن بقاء السيرفر نشطاً والنشر المنتظم لرفع ترتيبك في جوجل
-        print("💤 البوت في وضع الاستعداد الآن.. سيعود للعمل والنشر تلقائياً بعد 8 ساعات.")
-        time.sleep(28800)
+        current_index += 1
+        print(f"\n💤 المهمة تمت بنجاح. السيرفر مستعد للنشر التلقائي القادم بعد 8 ساعات.")
+        time.sleep(SYSTEM_CONFIG["interval_sleep_seconds"])
 
 if __name__ == "__main__":
-    start_infinite_automation()
+    start_infinite_system()
