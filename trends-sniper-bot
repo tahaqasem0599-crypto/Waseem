@@ -1,130 +1,90 @@
+import time
+import requests
+import google.generativeai as genai
+from datetime import datetime
 
-/**
- * بوت قنص النزعات والمنتجات العالمية - النسخة التنفيذية الشاملة
- * المطور والمالك: محمد نائل محمد العطار
- * بنك استلام الأرباح والعمولات التلقائية: بنك فلسطين (Bank of Palestine)
- * النظام: مغلق بالكامل، تلقائي 100% يعمل على السيرفر في الخلفية
- */
+# 1. إعدادات المفاتيح والروابط (توضع مرة واحدة فقط)
+GEMINI_API_KEY = "ضع_هنا_مفتاح_جيميني_المجاني"
+WORDPRESS_URL = "https://yourwebsite.com"
+WP_USERNAME = "admin_username"
+WP_APP_PASSWORD = "xxxx xxxx xxxx xxxx" # كلمة مرور التطبيقات من ووردبريس
 
-const axios = require('axios');
+# تهيئة محرك ذكاء جوجل الاصطناعي
+genai.configure(api_key=GEMINI_API_KEY)
+model = genai.GenerativeModel('gemini-pro')
 
-// الإعدادات الشاملة للمحرك وبيانات التحويل البنكي الآلي
-const BOT_SYSTEM_CONFIG = {
-    // قنوات جلب البيانات والذكاء الاصطناعي العالمية المفتوحة والمجانية
-    TRENDS_SOURCE_API: 'https://trendingproducts.com', 
-    AI_TEXT_ENGINE_API: 'https://ai-content-generation.com',
-    AI_ACCESS_KEY: 'YOUR_FREE_AI_API_KEY', // يوضع هنا مفتاح الـ API المجاني عند التشغيل
+def generate_automated_article(topic):
+    """توليد مقال احترافي متوافق مع السيو تلقائياً"""
+    prompt = f"""
+    Write a comprehensive, professional, and SEO-optimized article about '{topic}'.
+    The article must include:
+    - An engaging title
+    - Catchy subheadings (H2, H3)
+    - Detailed informative paragraphs
+    - High-traffic keywords related to the topic
+    Format the entire output directly in clean HTML tags (e.g., <h2>, <p>).
+    Do not include any conversational text or markdown. Jump straight to the article.
+    """
+    try:
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        print(f"خطأ في توليد المحتوى: {e}")
+        return None
 
-    // بيئة التوجيه المالي المباشر (مدمج بها معلومات حسابك من الصورة)
-    PAYMENT_GATEWAY_CONFIG: {
-        beneficiaryName: "Mohammad Nael Mohammad Al Attar",
-        bankName: "Bank of Palestine",
-        swiftCode: "PALSPS22XXX",
-        iban: "PS07PALS046022703160013000000",
-        payoutCurrency: "USD", // استقبال العمولات بالدولار الأمريكي وتحويلها لحسابك
-        autoWithdraw: true    // تفعيل السحب التلقائي الفوري فور تخطي الحد الأدنى للعمولة
-    },
-    
-    // معرف التتبع للعمولات
-    MY_AFFILIATE_TAG: 'mohammad_attar_2026', 
-    
-    // سرعة الأتمتة: فحص مستمر، توليد محتوى، وضخ روابط كل 3 دقائق بدون وضع نوم
-    INTERVAL_SPEED_MS: 180000 
-};
-
-// العداد الذكي لمراقبة حجم المبيعات والعمليات من هاتفك
-let liveSystemTracker = {
-    processedTrendsCount: 0,
-    deployedProfitLinks: 0,
-    systemStatus: "نشط ومتصل بالبوابة المالية لبنك فلسطين",
-    startTime: new Date().toLocaleString('ar-EG')
-};
-
-// 1. محرك قنص وتتبع النزعات الفيروسية العالمية
-async function sniperCurrentGlobalTrend() {
-    try {
-        console.log(`\n[🔍] فحص حي للإنترنت.. قنص المنتجات الأعلى تداولاً ورواجاً عالمياً في هذه الثواني...`);
-        const response = await axios.get(BOT_SYSTEM_CONFIG.TRENDS_SOURCE_API);
-        if (response.data && response.data.trending_items && response.data.trending_items.length > 0) {
-            return response.data.trending_items;
-        }
-    } catch (error) {
-        // إدارة صامتة للأخطاء لضمان استقرار السيرفر وعدم توقف الأكواد
+def publish_to_wordpress(title, content):
+    """نشر المقال مباشرة على الموقع بدون تدخل بشري"""
+    credentials = (WP_USERNAME, WP_APP_PASSWORD)
+    payload = {
+        "title": title,
+        "content": content,
+        "status": "publish", # نشر فوري ومباشر
+        "categories": [1]    # رقم القسم الافتراضي في موقعك
     }
-    // خطة بديلة (Fallback) لمنتج فيروسي جاهز لضمان استمرار ضخ الأرباح دون انقطاع
-    return {
-        id: 'viral_magnetic_charger_2026',
-        name: 'Premium 3-in-1 Magnetic Wireless Night-Light Charger',
-        url: 'https://aliexpress.com',
-        features: 'Fast charging, sleek luxury design, touching control night light, compatible with all devices'
-    };
-}
+    
+    try:
+        res = requests.post(WORDPRESS_URL, json=payload, auth=credentials)
+        if res.status_config == 201 or res.status_code == 200:
+            print(f"🎉 تم بنجاح نشر المقال تلقائياً: {title}")
+        else:
+            print(f"فشل النشر الرقمي. كود الاستجابة: {res.status_code}")
+    except Exception as e:
+        print(f"خطأ أثناء الاتصال بالموقع: {e}")
 
-// 2. محرك صياغة روابط الأرباح المشفرة المربوطة بآيبان حسابك في بنك فلسطين
-function generateSmartProfitLink(productUrl, productId) {
-    return `${productUrl}?afftrack=${BOT_SYSTEM_CONFIG.MY_AFFILIATE_TAG}&item=${productId}&payout_iban=${BOT_SYSTEM_CONFIG.PAYMENT_GATEWAY_CONFIG.iban}&utm_source=automated_sniper`;
-}
+# قائمة مؤتمتة متجددة للمواضيع المستهدفة (يمكن ربطها بـ API للأخبار والترندات لاحقاً)
+trending_topics = [
+    "Artificial Intelligence trends in 2027",
+    "Best front-end web development tools",
+    "How to automate online businesses with zero budget",
+    "Graphic design secrets for high-converting ads"
+]
 
-// 3. محرك الإنتاج الإبداعي الفاخر وصناعة المراجعات بالذكاء الاصطناعي
-async function generateLuxuryAIReview(productName, productFeatures) {
-    try {
-        const promptCommand = `Write a luxurious, viral, and persuasive product review for "${productName}". 
-        Key Features: ${productFeatures}. Optimize it with high-traffic marketing keywords and emojis. 
-        Completely tailored for instant purchase and optimized for global search engines.`;
+def start_infinite_automation():
+    print("==========================================")
+    print("🚀 تم إطلاق نظام النشر الذاتي المؤتمت بالكامل...")
+    print(f"⏰ وقت البدء: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print("==========================================")
+    
+    index = 0
+    while True:
+        # اختيار موضوع من القائمة بالترتيب
+        current_topic = trending_topics[index % len(trending_topics)]
+        print(f"\n[🔍] البدء في معالجة وكتابة موضوع: {current_topic}")
         
-        const response = await axios.post(BOT_SYSTEM_CONFIG.AI_TEXT_ENGINE_API, {
-            prompt: promptCommand,
-            max_tokens: 350
-        }, { headers: { 'Authorization': `Bearer ${BOT_SYSTEM_CONFIG.AI_ACCESS_KEY}` } });
+        # 1. توليد المقال بالذكاء الاصطناعي
+        article_html = generate_automated_article(current_topic)
+        
+        if article_html:
+            # 2. النشر التلقائي على الموقع
+            publish_to_wordpress(title=current_topic, content=article_html)
+        
+        # الانتقال للموضوع التالي
+        index += 1
+        
+        # الانتظار لمدة 8 ساعات (28800 ثانية) قبل كتابة ونشر المقال التالي تلقائياً
+        # هذا يضمن بقاء السيرفر نشطاً والنشر المنتظم لرفع ترتيبك في جوجل
+        print("💤 البوت في وضع الاستعداد الآن.. سيعود للعمل والنشر تلقائياً بعد 8 ساعات.")
+        time.sleep(28800)
 
-        if (response.data && response.data.generated_text) {
-            return response.data.generated_text;
-        }
-    } catch (error) {
-        return `✨ EXPERIENCE THE FUTURE: The All-New ${productName}! ✨\n\nLooking for the ultimate upgrade? This viral sensation is taking the world by storm right now. Engineered with premium materials and cutting-edge features: ${productFeatures}.\n\n🔥 Limited Quantity Available Worldwide! Tap the link below to lock in your exclusive discount! 👇`;
-    }
-}
-
-// 4. المحرك اللانهائي لإدارة الأتمتة الكاملة وإرسال الأرباح للبنك
-function startHyperAutomatedSystem() {
-    console.log('================================================================');
-    console.log(`[🚀] تم تشغيل النظام المؤتمت للغاية بنجاح.`);
-    console.log(`[👤] مالك الحساب والبرنامج: ${BOT_SYSTEM_CONFIG.PAYMENT_GATEWAY_CONFIG.beneficiaryName}`);
-    console.log(`[🏦] بوابة الاستقبال النشطة: ${BOT_SYSTEM_CONFIG.PAYMENT_GATEWAY_CONFIG.bankName}`);
-    console.log(`[💳] رقم الآيبان المعتمد: ${BOT_SYSTEM_CONFIG.PAYMENT_GATEWAY_CONFIG.iban}`);
-    console.log(`[📡] حالة النظام: ${liveSystemTracker.systemStatus}`);
-    console.log(`[⏰] وقت التشغيل: ${liveSystemTracker.startTime}`);
-    console.log('================================================================');
-
-    setInterval(async () => {
-        try {
-            // خطوة 1: قنص النزعة العالمية الحالية
-            const targetedProduct = await sniperCurrentGlobalTrend();
-            
-            if (targetedProduct) {
-                // خطوة 2: صياغة رابط الأرباح المشفر المربوط بآيبان حسابك في بنك فلسطين
-                const myProfitLink = generateSmartProfitLink(targetedProduct.url, targetedProduct.id);
-                
-                // خطوة 3: صناعة المحتوى التسويقي الفاخر أوتوماتيكياً بالذكاء الاصطناعي
-                const luxuryReviewContent = await generateLuxuryAIReview(targetedProduct.name, targetedProduct.features);
-                
-                // خطوة 4: ضخ المحتوى والرابط التلقائي إلى شبكات الإنترنت العالمية
-                liveSystemTracker.processedTrendsCount += 1;
-                liveSystemTracker.deployedProfitLinks += 1;
-                
-                console.log(`\n---------------- [🎯 عملية قنص ونشر وتوجيه مالي ناجحة] ----------------`);
-                console.log(`[📦 المنتج المستهدف]: ${targetedProduct.name}`);
-                console.log(`[📝 المحتوى الإعلاني المنشور في الخلفية]:\n${luxuryReviewContent}`);
-                console.log(`[💰 رابط العمولات الموجه لحسابك البنكي]: ${myProfitLink}`);
-                console.log(`[📊 إحصاءات النظام]: إجمالي الروابط النشطة المنشورة وتعمل الآن: ${liveSystemTracker.deployedProfitLinks}`);
-                console.log(`-----------------------------------------------------------------------`);
-            }
-        } catch (globalError) {
-            // نظام حماية مدمج يمنع الكود من التوقف كلياً مهما حدث من تذبذب في الاتصال
-        }
-    }, BOT_SYSTEM_CONFIG.INTERVAL_SPEED_MS);
-}
-
-// إطلاق الماكينة المؤتمتة بالكامل لتبدأ العمل فوراً لصالح حسابك
-startHyperAutomatedSystem();
-      
+if __name__ == "__main__":
+    start_infinite_automation()
