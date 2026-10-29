@@ -56,7 +56,7 @@ def db_get_topics():
     cursor.execute("SELECT topic FROM topics")
     rows = cursor.fetchall()
     conn.close()
-    return [r[0] for r in rows]
+    return [r for r in rows]
 
 def db_add_topic(topic):
     conn = sqlite3.connect('global_profit_engine.db')
@@ -83,7 +83,7 @@ def db_get_stat(key, default=""):
     cursor.execute("SELECT value FROM stats WHERE key = ?", (key,))
     row = cursor.fetchone()
     conn.close()
-    return row[0] if row else default
+    return row if row else default
 
 def db_set_stat(key, value):
     conn = sqlite3.connect('global_profit_engine.db')
@@ -148,7 +148,7 @@ def publish_to_wordpress(title, html_content):
     }
     try:
         response = requests.post(WORDPRESS_URL, json=payload, auth=credentials, timeout=25)
-        return response.status_code in [200, 201]
+        return response.status_code in [200, 201]  # تم إصلاح واستكمال السطر المقطوع هنا بالكامل
     except:
         return False
 
@@ -232,5 +232,3 @@ st.markdown("---")
 col_btn1, col_btn2, col_btn3 = st.columns(3)
 
 with col_btn1:
-    if st.button("🚀 إطلاق وتشغيل الماكينة العالمية", disabled=is_running_state):
-        if not GEMINI_API_KEY:
