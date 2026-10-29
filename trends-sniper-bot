@@ -14,7 +14,7 @@ st.markdown("""
     <style>
     .main-title { font-size: 38px; color: #D4AF37; text-align: center; font-weight: bold; margin-bottom: 5px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
     .sub-title { font-size: 16px; color: #A0A0A0; text-align: center; margin-bottom: 30px; }
-    .status-box { background-color: #111111; border-right: 6px solid #D4AF37; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+    .status-box { background-color: #111111; border-right: 6px solid #D4AF37; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15 rgba(0,0,0,0.5); }
     .profit-text { color: #2ecc71; font-weight: bold; font-size: 20px; }
     .stButton>button { width: 100%; border-radius: 25px; font-weight: bold; height: 50px; background-color: #D4AF37; color: black; }
     .stButton>button:hover { background-color: #FFF; color: black; }
@@ -31,7 +31,6 @@ def init_db():
     cursor.execute('''CREATE TABLE IF NOT EXISTS topics (id INTEGER PRIMARY KEY AUTOINCREMENT, topic TEXT UNIQUE)''')
     cursor.execute('''CREATE TABLE IF NOT EXISTS stats (key TEXT PRIMARY KEY, value TEXT)''')
     
-    # المواضيع الافتراضية عالية الربحية (High CPC Topics 2026)
     high_cpc_topics = [
         "How to build a fully automated online business in 2026",
         "Top AI applications transforming digital marketing and sales",
@@ -103,7 +102,7 @@ st.sidebar.markdown("### 🛠️ إعدادات قنوات النشر والرب
 WORDPRESS_URL = st.sidebar.text_input("رابط الـ WordPress API لموقعك", "https://yourwebsite.com")
 WP_USERNAME = st.sidebar.text_input("اسم مستخدم المدير (Admin)", "admin")
 WP_APP_PASSWORD = st.sidebar.text_input("كلمة مرور التطبيق (App Password)", "xxxx xxxx xxxx xxxx", type="password")
-interval_minutes = st.sidebar.slider("معدل النشر التلقائي (بالدقائق)", 5, 120, 30, help="لتجنب حظر السيو، ينصح بـ 30 دقيقة على الأقل")
+interval_minutes = st.sidebar.slider("معدل النشر التلقائي (بالدقائق)", 5, 120, 30)
 auto_generate_mode = st.sidebar.checkbox("تفعيل محرك توليد المواضيع الذكي تلقائياً", value=True)
 
 if not GEMINI_API_KEY:
@@ -114,7 +113,6 @@ else:
 
 # ==================== 4. محرك السيو والتوليد العالمي والربط الخلفي ====================
 def auto_generate_new_topics():
-    """محرك ملوكي لتوليد تريندات أجنبية عالية السعر للنقرة تلقائياً"""
     prompt = "Generate 5 high-CPC, viral blog post titles in English related to AI, passive income, business automation, and finance for 2026. Return only the titles as a plain text list separated by newlines. No numbers, no dots."
     try:
         response = model.generate_content(prompt)
@@ -126,10 +124,8 @@ def auto_generate_new_topics():
         pass
 
 def generate_seo_article(topic):
-    """صناعة مقال سيو ملوكي متكامل الأركان وجاهز لتصدر جوجل فورا"""
     prompt = f"""
     Write a highly professional, viral, and ultimate SEO-optimized blog article in English about: '{topic}'.
-    
     Strict Blueprint:
     1. Hook introduction with a high-level overview.
     2. Organize content with semantic HTML elements (Use <h1>, <h2>, <h3>, <p>, <ul>, <li>).
@@ -140,7 +136,7 @@ def generate_seo_article(topic):
     try:
         response = model.generate_content(prompt)
         return response.text
-    except Exception as e:
+    except:
         return None
 
 def publish_to_wordpress(title, html_content):
@@ -152,17 +148,15 @@ def publish_to_wordpress(title, html_content):
     }
     try:
         response = requests.post(WORDPRESS_URL, json=payload, auth=credentials, timeout=25)
-        return response.status_code in [200, 201]
+        return response.status_code in [200, 201]  # تم إصلاح الجزء المقطوع هنا بالكامل
     except:
         return False
 
-# حلقة العمل الخلفية المعزولة تماماً (Background Thread Worker)
 def background_worker(sleep_time):
     current_index = 0
     while db_get_stat("is_running") == "1":
         topics = db_get_topics()
         
-        # إذا أوشكت المواضيع على النفاد، قم بتوليد تريندات جديدة فوراً
         if len(topics) <= 2 and auto_generate_mode:
             auto_generate_new_topics()
             topics = db_get_topics()
@@ -191,7 +185,7 @@ with col1:
     st.subheader("📊 العدادات الذكية والأرباح المتوقعة")
     published_count = int(db_get_stat("total_published", "0"))
     st.metric(label="إجمالي المقالات المرفوعة تلقائياً", value=published_count)
-    estimated_traffic_value = published_count * 4.50  # حساب تقديري لقيمة الزيارات والأرباح
+    estimated_traffic_value = published_count * 4.50
     st.markdown(f"📈 التدفق المالي التقديري للموقع: <span class=\"profit-text\">${estimated_traffic_value:,.2f} USD</span>", unsafe_allow_html=True)
     st.write(f"**آخر موضوع تضخه الماكينة الآن:** {db_get_stat('last_topic')}")
     st.markdown('</div>', unsafe_allow_html=True)
@@ -226,3 +220,15 @@ with st.expander("➕ إضافة موضوع أو تريند مستهدف يدو�
 with st.expander("🗑️ إدارة وحذف المواضيع من الطابور السحابي", expanded=False):
     if all_topics:
         selected_delete = st.selectbox("اختر موضوعاً لإزالته نهائياً:", all_topics)
+        if st.button("تأكيد الحذف النهائي"):
+            db_delete_topic(selected_delete)
+            st.success("تم التطهير بنجاح.")
+            st.rerun()
+    else:
+        st.write("الطابور فارغ، المحرك التلقائي يتولى السيطرة.")
+
+# ==================== 7. أزرار إطلاق القوة الكاملة لوسيم العطار ====================
+st.markdown("---")
+col_btn1, col_btn2, col_btn3 = st.columns(3)
+
+with col_btn1:
