@@ -1,52 +1,216 @@
-# -*- coding: utf-8 -*-
 import os
 import time
+import sqlite3
 import threading
-from flask import Flask, request, jsonify
+import requests
+import streamlit as st
 from openai import OpenAI
+from datetime import datetime
 
-app = Flask(__name__)
+# ==================== 1. إعدادات واجهة المنصة الفاخرة ====================
+st.set_page_config(page_title="نظام الأتمتة الشامل - وسيم العطار", page_icon="💰", layout="wide")
 
-# Ensure API Key is safely read
-openai_key = os.environ.get("OPENAI_API_KEY", "")
-client = OpenAI(api_key=openai_key) if openai_key else None
+st.markdown("""
+    <style>
+    .main-title { font-size: 38px; color: #D4AF37; text-align: center; font-weight: bold; margin-bottom: 5px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+    .sub-title { font-size: 16px; color: #A0A0A0; text-align: center; margin-bottom: 30px; }
+    .status-box { background-color: #111111; border-right: 6px solid #D4AF37; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+    .profit-text { color: #2ecc71; font-weight: bold; font-size: 20px; }
+    .stButton>button { width: 100%; border-radius: 25px; font-weight: bold; height: 50px; background-color: #D4AF37; color: black; }
+    .stButton>button:hover { background-color: #FFF; color: black; }
+    </style>
+""", unsafe_allow_html=True)
 
-wallet_balance = 0.0
+st.markdown('<div class="main-title">💰 ماكينة الأتمتة وضخ المحتوى الرقمي المطور العالـمي</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-title">المطور والمالك المسؤول: وسيم نائل العطار | الحساب المعتمد: tahaqasem0599-crypto</div>', unsafe_allow_html=True)
 
-@app.route('/', methods=['GET'])
-def home():
-    global wallet_balance
-    return jsonify({
-        "status": "online",
-        "system": "Waseem Al Attar Global AI Engine",
-        "wallet_balance_usd": f"${wallet_balance:.4f}",
-        "bank": "Bank of Palestine connected"
-    }), 200
+# ==================== 2. إدارة قاعدة البيانات الدائمة ====================
+def init_db():
+    conn = sqlite3.connect('global_profit_engine.db')
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS topics (id INTEGER PRIMARY KEY AUTOINCREMENT, topic TEXT UNIQUE)''')
+    cursor.execute('''CREATE TABLE IF NOT EXISTS stats (key TEXT PRIMARY KEY, value TEXT)''')
+    high_cpc_topics = [
+        "How to build a fully automated online business in 2026",
+        "Top AI applications transforming digital marketing and sales",
+        "Unlocking passive income through AI automation workflows"
+    ]
+    for t in high_cpc_topics:
+        try: cursor.execute("INSERT INTO topics (topic) VALUES (?)", (t,))
+        except: pass
+    cursor.execute("INSERT OR IGNORE INTO stats (key, value) VALUES ('total_published', '0')")
+    cursor.execute("INSERT OR IGNORE INTO stats (key, value) VALUES ('last_topic', 'لم يتم البدء بعد')")
+    cursor.execute("INSERT OR IGNORE INTO stats (key, value) VALUES ('is_running', '0')")
+    conn.commit()
+    conn.close()
 
-def passive_income_generator():
-    global wallet_balance
-    while True:
-        wallet_balance += 0.0521
-        time.sleep(60)
+init_db()
 
-@app.route('/auto-promote', methods=['GET'])
-def auto_promote():
-    if not client:
-        return jsonify({"status": "error", "message": "API Key missing"}), 400
+def db_get_topics():
+    conn = sqlite3.connect('global_profit_engine.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT topic FROM topics")
+    rows = cursor.fetchall()
+    conn.close()
+    return [r[0] for r in rows]
+
+def db_add_topic(topic):
+    conn = sqlite3.connect('global_profit_engine.db')
+    cursor = conn.cursor()
+    try:
+        cursor.execute("INSERT INTO topics (topic) VALUES (?)", (topic,))
+        conn.commit()
+        success = True
+    except:
+        success = False
+    conn.close()
+    return success
+
+def db_delete_topic(topic):
+    conn = sqlite3.connect('global_profit_engine.db')
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM topics WHERE topic = ?", (topic,))
+    conn.commit()
+    conn.close()
+
+def db_get_stat(key, default=""):
+    conn = sqlite3.connect('global_profit_engine.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT value FROM stats WHERE key = ?", (key,))
+    row = cursor.fetchone()
+    conn.close()
+    return row[0] if row else default
+
+def db_set_stat(key, value):
+    conn = sqlite3.connect('global_profit_engine.db')
+    cursor = conn.cursor()
+    cursor.execute("INSERT OR REPLACE INTO stats (key, value) VALUES (?, ?)", (key, str(value)))
+    conn.commit()
+    conn.close()
+
+# ==================== 3. إعداد عميل OpenAI بأمان ====================
+if "OPENAI_API_KEY" in st.secrets:
+    OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
+else:
+    OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+
+st.sidebar.markdown("### 🛠️ إعدادات قنوات النشر والربح")
+WORDPRESS_URL = st.sidebar.text_input("رابط الـ WordPress API لموقعك", "https://yourwebsite.com")
+WP_USERNAME = st.sidebar.text_input("اسم مستخدم المدير (Admin)", "admin")
+WP_APP_PASSWORD = st.sidebar.text_input("كلمة مرور التطبيق", "xxxx xxxx xxxx xxxx", type="password")
+interval_minutes = st.sidebar.slider("معدل النشر التلقائي (بالدقائق)", 5, 120, 30)
+auto_generate_mode = st.sidebar.checkbox("تفعيل محرك توليد المواضيع الذكي تلقائياً", value=True)
+
+if not OPENAI_API_KEY:
+    st.error("❌ تنبيه أمان حرج: يرجى إضافة مفتاح OPENAI_API_KEY في إعدادات Secrets داخل Streamlit Cloud!")
+else:
+    try:
+        client = OpenAI(api_key=OPENAI_API_KEY)
+    except Exception as e:
+        st.error(f"❌ خطأ في تهيئة مكتبة OpenAI: {e}")
+
+# ==================== 4. محرك السيو والتوليد العالمي (OpenAI ChatGPT) ====================
+def auto_generate_new_topics():
+    if not OPENAI_API_KEY: return
     try:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "You are a global marketing expert. Write a viral product post in Arabic."},
-                {"role": "user", "content": "Viral marketing trend 2026"}
-            ]
+            messages=[{"role": "user", "content": "Generate 5 high-CPC blog titles in English about AI and finance. Return only titles separated by newlines."}]
         )
-        return jsonify({"status": "success", "content": response.choices.message.content}), 200
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        for title in response.choices.message.content.strip().split('\n'):
+            if title.strip(): db_add_topic(title.strip())
+    except: pass
 
-income_thread = threading.Thread(target=passive_income_generator, daemon=True)
-income_thread.start()
+def generate_seo_article(topic):
+    if not OPENAI_API_KEY: return None
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": f"Write a professional SEO-optimized article in English about: '{topic}'. Output direct clean HTML content only."}]
+        )
+        return response.choices.message.content
+    except: return None
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+def publish_to_wordpress(title, html_content):
+    credentials = (WP_USERNAME, WP_APP_PASSWORD)
+    payload = {"title": title, "content": html_content, "status": "publish"}
+    try:
+        response = requests.post(WORDPRESS_URL, json=payload, auth=credentials, timeout=25)
+        return response.status_code in [200, 201]
+    except:
+        return False
+
+def background_worker(sleep_time):
+    current_index = 0
+    while db_get_stat("is_running") == "1":
+        topics = db_get_topics()
+        if len(topics) <= 2 and auto_generate_mode:
+            auto_generate_new_topics()
+            topics = db_get_topics()
+        if not topics:
+            time.sleep(10)
+            continue
+        topic = topics[current_index % len(topics)]
+        db_set_stat("last_topic", topic)
+        content = generate_seo_article(topic)
+        if content and publish_to_wordpress(topic, content):
+            current_total = int(db_get_stat("total_published", "0"))
+            db_set_stat("total_published", current_total + 1)
+        current_index += 1
+        time.sleep(sleep_time)
+
+# ==================== 5. لوحة التحكم والإحصائيات الفورية ====================
+col1, col2 = st.columns(2)
+with col1:
+    st.markdown('<div class="status-box">', unsafe_allow_html=True)
+    st.subheader("📊 العدادات الذكية والأرباح المتوقعة")
+    published_count = int(db_get_stat("total_published", "0"))
+    st.metric(label="إجمالي المقالات المرفوعة تلقائياً", value=published_count)
+    estimated_traffic_value = published_count * 4.50
+    st.markdown(f"📈 التدفق المالي التقديري: <span class=\"profit-text\">${estimated_traffic_value:,.2f} USD</span>", unsafe_allow_html=True)
+    st.write(f"**آخر موضوع تضخه الماكينة:** {db_get_stat('last_topic')}")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with col2:
+    st.markdown('<div class="status-box">', unsafe_allow_html=True)
+    st.subheader("📡 حالة القمر الصناعي للماكينة")
+    is_running_state = db_get_stat("is_running") == "1"
+    if is_running_state: st.success("● الماكينة نشطة وتضخ المحتوى في الخلفية")
+    else: st.warning("○ الماكينة في وضع الاستعداد بانتظار زر التشغيل")
+    st.write(f"**التوقيت الحالي للفحص:** {datetime.now().strftime('%H:%M:%S')}")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# ==================== 6. إدارة بنك الكلمات الدلالية ====================
+st.markdown("### 🎯 مستودع الكلمات الدلالية المستهدفة")
+all_topics = db_get_topics()
+
+with st.expander("➕ إضافة موضوع أو تريند مستهدف يدوياً"):
+    new_topic = st.text_input("ادخل موضوع المقال المستهدف:")
+    if st.button("تثبيت وإدراج فوراً") and new_topic:
+        if db_add_topic(new_topic.strip()): st.success("تم الإدراج!"); st.rerun()
+
+with st.expander("🗑️ إدارة وحذف المواضيع"):
+    if all_topics:
+        selected_delete = st.selectbox("اختر موضوعاً لإزالته:", all_topics)
+        if st.button("تأكيد الحذف النهائي"): db_delete_topic(selected_delete); st.rerun()
+    else: st.write("الطابور فارغ.")
+
+# ==================== 7. أزرار التحكم ====================
+st.markdown("---")
+col_btn1, col_btn2, col_btn3 = st.columns(3)
+
+with col_btn1:
+    if st.button("🚀 إطلاق وتشغيل الماكينة العالمية", disabled=is_running_state):
+        if not OPENAI_API_KEY: st.error("مفتاح الـ API مفقود!")
+        else:
+            db_set_stat("is_running", "1")
+            threading.Thread(target=background_worker, args=(interval_minutes * 60,), daemon=True).start()
+            st.success("🔄 انطلقت بنجاح بمحرك OpenAI!")
+            time.sleep(1); st.rerun()
+
+with col_btn2:
+    if st.button("🛑 إيقاف مؤقت للماكينة", disabled=not is_running_state):
+        db_set_stat("is_running", "0"); st.warning("⚠️ تم الإيقاف."); time.sleep(1); st.rerun()
+
+with col_btn3:
+    if st.button("🔄 تحديث الشاشة الفوري"): st.rerun()
