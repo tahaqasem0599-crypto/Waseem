@@ -4,7 +4,7 @@ import sqlite3
 import threading
 import requests
 import streamlit as st
-import google.generativeai as genai
+from openai import OpenAI
 from datetime import datetime
 
 # ==================== 1. إعدادات واجهة المنصة الفاخرة ====================
@@ -88,11 +88,11 @@ def db_set_stat(key, value):
     conn.commit()
     conn.close()
 
-# ==================== 3. الأمان وإعدادات القنوات ====================
-if "GEMINI_API_KEY" in st.secrets:
-    GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
+# ==================== 3. إعداد عميل OpenAI بأمان ====================
+if "OPENAI_API_KEY" in st.secrets:
+    OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 else:
-    GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+    OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 
 st.sidebar.markdown("### 🛠️ إعدادات قنوات النشر والربح")
 WORDPRESS_URL = st.sidebar.text_input("رابط الـ WordPress API لموقعك", "https://yourwebsite.com")
@@ -101,26 +101,34 @@ WP_APP_PASSWORD = st.sidebar.text_input("كلمة مرور التطبيق", "xxx
 interval_minutes = st.sidebar.slider("معدل النشر التلقائي (بالدقائق)", 5, 120, 30)
 auto_generate_mode = st.sidebar.checkbox("تفعيل محرك توليد المواضيع الذكي تلقائياً", value=True)
 
-if not GEMINI_API_KEY:
-    st.error("❌ تنبيه أمان حرج: مفتاح GEMINI_API_KEY غير معرّف!")
+if not OPENAI_API_KEY:
+    st.error("❌ تنبيه أمان حرج: يرجى إضافة مفتاح OPENAI_API_KEY في إعدادات Secrets داخل Streamlit Cloud!")
 else:
-    genai.configure(api_key=GEMINI_API_KEY)
-    model = genai.GenerativeModel('gemini-1.5-flash')
-
-# ==================== 4. محرك السيو والتوليد العالمي ====================
-def auto_generate_new_topics():
-    prompt = "Generate 5 high-CPC blog titles in English about AI and finance. Return only titles separated by newlines."
     try:
-        response = model.generate_content(prompt)
-        for title in response.text.strip().split('\n'):
+        client = OpenAI(api_key=OPENAI_API_KEY)
+    except Exception as e:
+        st.error(f"❌ خطأ في تهيئة مكتبة OpenAI: {e}")
+
+# ==================== 4. محرك السيو والتوليد العالمي (OpenAI ChatGPT) ====================
+def auto_generate_new_topics():
+    if not OPENAI_API_KEY: return
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": "Generate 5 high-CPC blog titles in English about AI and finance. Return only titles separated by newlines."}]
+        )
+        for title in response.choices.message.content.strip().split('\n'):
             if title.strip(): db_add_topic(title.strip())
     except: pass
 
 def generate_seo_article(topic):
-    prompt = f"Write a professional SEO-optimized article in English about: '{topic}'. Output direct clean HTML content only."
+    if not OPENAI_API_KEY: return None
     try:
-        response = model.generate_content(prompt)
-        return response.text
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": f"Write a professional SEO-optimized article in English about: '{topic}'. Output direct clean HTML content only."}]
+        )
+        return response.choices.message.content
     except: return None
 
 def publish_to_wordpress(title, html_content):
@@ -193,11 +201,11 @@ col_btn1, col_btn2, col_btn3 = st.columns(3)
 
 with col_btn1:
     if st.button("🚀 إطلاق وتشغيل الماكينة العالمية", disabled=is_running_state):
-        if not GEMINI_API_KEY: st.error("مفتاح الـ API مفقود!")
+        if not OPENAI_API_KEY: st.error("مفتاح الـ API مفقود!")
         else:
             db_set_stat("is_running", "1")
             threading.Thread(target=background_worker, args=(interval_minutes * 60,), daemon=True).start()
-            st.success("🔄 انطلقت بنجاح!")
+            st.success("🔄 انطلقت بنجاح بمحرك OpenAI!")
             time.sleep(1); st.rerun()
 
 with col_btn2:
