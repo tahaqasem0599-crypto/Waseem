@@ -2,6 +2,7 @@ import os
 import time
 import sqlite3
 import threading
+import requests
 import streamlit as st
 from openai import OpenAI
 from datetime import datetime
@@ -14,7 +15,7 @@ st.markdown("""
     .main-title { font-size: 38px; color: #D4AF37; text-align: center; font-weight: bold; margin-bottom: 5px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
     .sub-title { font-size: 16px; color: #A0A0A0; text-align: center; margin-bottom: 30px; }
     .status-box { background-color: #111111; border-right: 6px solid #D4AF37; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-    .article-box { background-color: #1a1a1a; border: 1px solid #D4AF37; padding: 25px; border-radius: 10px; margin-top: 20px; color: #ffffff; }
+    .profit-text { color: #2ecc71; font-weight: bold; font-size: 20px; }
     .stButton>button { width: 100%; border-radius: 25px; font-weight: bold; height: 50px; background-color: #D4AF37; color: black; }
     .stButton>button:hover { background-color: #FFF; color: black; }
     </style>
@@ -39,7 +40,6 @@ def init_db():
         except: pass
     cursor.execute("INSERT OR IGNORE INTO stats (key, value) VALUES ('total_published', '0')")
     cursor.execute("INSERT OR IGNORE INTO stats (key, value) VALUES ('last_topic', 'لم يتم البدء بعد')")
-    cursor.execute("INSERT OR IGNORE INTO stats (key, value) VALUES ('last_content', 'المحتوى الجاهز للنسخ سيظهر هنا عند توليده...')")
     cursor.execute("INSERT OR IGNORE INTO stats (key, value) VALUES ('is_running', '0')")
     conn.commit()
     conn.close()
@@ -94,12 +94,18 @@ if "OPENAI_API_KEY" in st.secrets:
 else:
     OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 
+st.sidebar.markdown("### 🛠️ إعدادات قنوات النشر والربح")
+WORDPRESS_URL = st.sidebar.text_input("رابط الـ WordPress API لموقعك", "https://yourwebsite.com")
+WP_USERNAME = st.sidebar.text_input("اسم مستخدم المدير (Admin)", "admin")
+WP_APP_PASSWORD = st.sidebar.text_input("كلمة مرور التطبيق", "xxxx xxxx xxxx xxxx", type="password")
+interval_minutes = st.sidebar.slider("معدل النشر التلقائي (بالدقائق)", 5, 120, 30)
+
 if not OPENAI_API_KEY:
-    st.error("❌ يرجى التأكد من إضافة مفتاح OPENAI_API_KEY في الـ Secrets!")
+    st.error("❌ تنبيه أمان حرج: يرجى إضافة مفتاح OPENAI_API_KEY في الـ Secrets!")
 else:
     client = OpenAI(api_key=OPENAI_API_KEY)
 
-# ==================== 4. محرك التوليد الفوري للمقالات ====================
+# ==================== 4. محرك السيو والتوليد والارسال التلقائي ====================
 def auto_generate_new_topics():
     try:
         response = client.chat.completions.create(
@@ -114,12 +120,21 @@ def generate_seo_article(topic):
     try:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=[{"role": "user", "content": f"Write a professional SEO-optimized blog post in English about: '{topic}'. Include headings, clear paragraphs, and key takeaways. Output clean readable text."}]
+            messages=[{"role": "user", "content": f"Write a professional SEO-optimized article in English about: '{topic}'. Output direct clean HTML content only."}]
         )
         return response.choices.message.content
     except: return None
 
-def background_worker():
+def publish_to_wordpress(title, html_content):
+    credentials = (WP_USERNAME, WP_APP_PASSWORD)
+    payload = {"title": title, "content": html_content, "status": "publish"}
+    try:
+        response = requests.post(WORDPRESS_URL, json=payload, auth=credentials, timeout=25)
+        return response.status_code in [200, 201]
+    except:
+        return False
+
+def background_worker(sleep_time):
     current_index = 0
     while db_get_stat("is_running") == "1":
         topics = db_get_topics()
@@ -127,58 +142,58 @@ def background_worker():
             auto_generate_new_topics()
             topics = db_get_topics()
         if not topics:
-            time.sleep(5)
+            time.sleep(10)
             continue
         
         topic = topics[current_index % len(topics)]
         db_set_stat("last_topic", topic)
-        
         content = generate_seo_article(topic)
-        if content:
-            db_set_stat("last_content", content)
+        
+        if content and publish_to_wordpress(topic, content):
             current_total = int(db_get_stat("total_published", "0"))
             db_set_stat("total_published", current_total + 1)
-            db_delete_topic(topic)  # حذف الموضوع بعد توليده لكي لا يتكرر
+            db_delete_topic(topic)
             
-        db_set_stat("is_running", "0")  # التوقف بعد توليد المقال لينسخه وسيم يدوياً
-        break
+        current_index += 1
+        time.sleep(sleep_time)
 
 # ==================== 5. لوحة التحكم والإحصائيات الفورية ====================
 col1, col2 = st.columns(2)
 with col1:
     st.markdown('<div class="status-box">', unsafe_allow_html=True)
-    st.subheader("📊 العدادات الذكية والمقالات الجاهزة")
+    st.subheader("📊 العدادات الذكية والأرباح المتوقعة")
     published_count = int(db_get_stat("total_published", "0"))
-    st.metric(label="إجمالي المقالات الجاهزة للنسخ"، value=published_count)
-    st.write(f"**الموضوع المستهدف الحالي:** {db_get_stat('last_topic')}")
+    st.metric(label="إجمالي المقالات المرفوعة تلقائياً لموقعك", value=published_count)
+    estimated_traffic_value = published_count * 4.50
+    st.markdown(f"📈 التدفق المالي التقديري: <span class=\"profit-text\">${estimated_traffic_value:,.2f} USD</span>", unsafe_allow_html=True)
+    st.write(f"**آخر موضوع تم ضخه للووردبريس:** {db_get_stat('last_topic')}")
     st.markdown('</div>', unsafe_allow_html=True)
 
 with col2:
     st.markdown('<div class="status-box">', unsafe_allow_html=True)
-    st.subheader("📡 حالة الماكينة")
+    st.subheader("📡 حالة الماكينة الآلية")
     is_running_state = db_get_stat("is_running") == "1"
-    if is_running_state: st.success("● جاري توليد المقال القادم بذكاء فائق... انتظر ثواني ثم حدث الشاشة")
-    else: st.warning("○ الماكينة جاهزة. اضغط تشغيل لتوليد مقال جديد فوراً")
-    st.write(f"**التوقيت الحالي:** {datetime.now().strftime('%H:%M:%S')}")
+    if is_running_state: st.success("● الماكينة في وضع الأتمتة الكاملة وتضخ للموقع بالخلفية")
+    else: st.warning("○ الماكينة متوقفة حالياً")
+    st.write(f"**توقيت الفحص:** {datetime.now().strftime('%H:%M:%S')}")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ==================== 6. عرض المقال المتولد للنسخ الفوري ====================
-st.markdown('### 📝 المقال الاحترافي الجاهز للنسخ الآن:')
-last_generated_content = db_get_stat("last_content")
-st.text_area(label="انسخ النص أدناه بالكامل وانشره في موقعك لتبدأ بجني الأرباح:", value=last_generated_content, height=400)
-
-# ==================== 7. أزرار التحكم ====================
+# ==================== 6. أزرار التحكم ====================
 st.markdown("---")
 col_btn1, col_btn2 = st.columns(2)
 
 with col_btn1:
-    if st.button("🚀 توليد مقال احترافي جديد فوراً", disabled=is_running_state):
+    if st.button("🚀 تشغيل وضع الأتمتة الكاملة الدائمة", disabled=is_running_state):
         db_set_stat("is_running", "1")
-        threading.Thread(target=background_worker, daemon=True).start()
-        time.sleep(2)
+        threading.Thread(target=background_worker, args=(interval_minutes * 60,), daemon=True).start()
+        st.success("🔄 انطلقت الأتمتة الكاملة!")
+        time.sleep(1)
         st.rerun()
 
 with col_btn2:
-    if st.button("🔄 تحديث الشاشة لرؤية المقال الجديد"):
+    if st.button("🛑 إيقاف الأتمتة", disabled=not is_running_state):
+        db_set_stat("is_running", "0")
+        st.warning("⚠️ تم الإيقاف.")
+        time.sleep(1)
         st.rerun()
     
