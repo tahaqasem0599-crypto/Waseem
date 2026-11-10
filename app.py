@@ -28,7 +28,7 @@ st.markdown("""
     .stTabs [data-baseweb="tab"] { color: #ffffff; }
     .stTabs [aria-selected="true"] { color: #d4af37 !important; font-weight: bold; }
     </style>
-    """, unsafe_with_html=True)
+    """, unsafe_allow_html=True)
 
 st.title("🌐 النواة العالمية المؤتمتة لخدمات الذكاء الاصطناعي")
 st.write("المنظومة الفائقة والأكثر تطوراً لتلبية كافة الطلبات البرمجية والبصرية للعالم أجمع.")
@@ -40,7 +40,7 @@ entered_password = st.text_input("أدخل مفتاح الأمان السري ل
 if entered_password == ADMIN_PASSWORD:
     st.success("🔓 تم فك التشفير. المنظومة العالمية جاهزة للعمل بكامل طاقتها الآن يا وسيم.")
     
-    tab1, tab2, tab3 = st.tabs(["📝 Texts & Ads النصوص والهندسة الإعلانية", "🎨 Design & Logos التصميم البصري والشعارات", "👁️ Vision & Analysis تحليل الصور والملفات المرفوعة"])
+    tab1, tab2, tab3 = st.tabs(["📝 النصوص والهندسة الإعلانية", "🎨 التصميم البصري والشعارات", "👁️ تحليل الصور والملفات المرفوعة"])
     
     with tab1:
         st.subheader("✍️ محرّك توليد النصوص وصناعة المحتوى العالمي")
@@ -92,3 +92,4 @@ if entered_password == ADMIN_PASSWORD:
                         st.write(response.text)
                     except Exception as e:
                         st.error(f"Error: {e}")
+    
