@@ -51,7 +51,7 @@ if "authenticated" not in st.session_state:
 
 if not st.session_state.authenticated:
     st.markdown("<br><br>", unsafe_allow_html=True)
-    col_empty1, col_login, col_empty2 = st.columns([1, 1.5, 1])
+    col_empty1, col_login, col_empty2 = st.columns((1, 1.5, 1))
     with col_login:
         st.title("🔒 استوديو العمل الخاص")
         st.markdown("نظام إدارة وتنفيذ طلبات العملاء الحصري.")
@@ -71,35 +71,35 @@ with st.sidebar:
     
     style = st.selectbox(
         "🎨 الأسلوب الفني العام",
-        [
+        (
             "Minimalist & Luxury (بسيط وفاخر)",
             "3D Modern Render (ثلاثي الأبعاد عصري)",
             "Commercial Advertising (إعلاني تجاري احترافي)",
             "Neon & Vibrant (ألوان نيون مشرقة وجذابة)",
             "Realistic Studio Photo (تصوير استوديو واقعي)",
             "Vintage & Classic (كلاسيكي عتيق)"
-        ]
+        )
     )
     
     color_palette = st.selectbox(
         "🌈 لوحة الألوان",
-        [
+        (
             "Gold & Black (ذهبي وأسود ملكي)",
             "Royal Blue & White (أزرق ملكي وأبيض)",
             "Emerald Green & Cream (أخضر زمردي وكريمي)",
             "Vibrant Red & Yellow (أحمر وأصفر للخصومات)",
             "Pastel & Soft (ألوان ناعمة وهادئة)",
             "Silver & Charcoal (فضي وفحمي داكن)"
-        ]
+        )
     )
     
     aspect_ratio = st.radio(
         "📐 مقاس المنصة المطلوب",
-        [
+        (
             "مربع - بوست انستغرام/فيسبوك (1080x1080)",
             "عمودي - ستوري/ريلز/تيك توك (720x1280)",
             "أفقي - يوتيوب/غلاف فيسبوك (1280x720)"
-        ]
+        )
     )
     
     if "1080x1080" in aspect_ratio:
@@ -109,7 +109,7 @@ with st.sidebar:
     else:
         width, height = 1280, 720
 
-    model_choice = st.selectbox("🧠 دقة المحرك (Turbo أسرع بكثير)", ["turbo", "flux"])
+    model_choice = st.selectbox("🧠 دقة المحرك (Turbo أسرع بكثير)", ("turbo", "flux"))
     
     st.divider()
     watermark_text = st.text_input("🛡️ نص العلامة المائية للمعاينة", value="PREVIEW - غير مدفوع")
@@ -196,23 +196,23 @@ def generate_voiceover(text_to_speak):
 # 4. الواجهة الرئيسية
 st.title("👑 الاستوديو الشامل لخدمات السوشيال ميديا والتجارة")
 
-tab1, tab2 = st.tabs([
+tab1, tab2 = st.tabs((
     "🎨 قسم 1: تصميم الشعارات والإعلانات + النصوص والصوت",
     "📸 قسم 2: استوديو دمج وتصوير منتجات العملاء (Mockup)"
-])
+))
 
 with tab1:
     col1, col2 = st.columns(2)
     with col1:
         service_type = st.selectbox(
             "🎯 نوع التصميم المطلوب",
-            [
+            (
                 "Logo Design (تصميم شعار وهوية بصرية)",
                 "Social Media Ad Post (بوست إعلاني وترويجي)",
                 "Instagram/TikTok Story & Reels Cover (ستوري وغلاف ريلز)",
                 "YouTube Thumbnail (صورة مصغرة لليوتيوب)",
                 "Logo Mockup on Luxury Business Card & Storefront (عرض الشعار على بطاقة ولافتة)"
-            ]
+            )
         )
         brand_name = st.text_input("🏢 اسم مشروع العميل", placeholder="مثال: متجر الأناقة")
         client_request_ar = st.text_area("📝 تفاصيل طلب العميل بالعربية", placeholder="مثال: شعار تاج ذهبي فاخر لمتجر ملابس، أو إعلان خصم 50% على العطور...")
@@ -229,13 +229,13 @@ with tab1:
         else:
             with st.spinner("جاري تجهيز الحملة والتصاميم باحترافية..."):
                 desc_en = translate_to_english(client_request_ar)
-                clean_service = service_type.split("(").strip()
-                clean_style = style.split("(").strip()
-                clean_colors = color_palette.split("(").strip()
+                clean_service, _, _ = service_type.partition("(")
+                clean_style, _, _ = style.partition("(")
+                clean_colors, _, _ = color_palette.partition("(")
                 
                 final_prompt = (
-                    f"{clean_service} for '{brand_name}', {desc_en}. "
-                    f"Style: {clean_style}, Color palette: {clean_colors}. "
+                    f"{clean_service.strip()} for '{brand_name}', {desc_en}. "
+                    f"Style: {clean_style.strip()}, Color palette: {clean_colors.strip()}. "
                     f"Isolated clean design, Behance and Dribbble trending, ultra-detailed, "
                     f"high contrast, studio quality, sharp focus, no watermark."
                 )
@@ -263,3 +263,4 @@ with tab1:
                 with cols[i]:
                     with st.spinner(f"جاري تصميم النموذج #{i+1}..."):
                         seed = random.randint(1, 999999)
+            
