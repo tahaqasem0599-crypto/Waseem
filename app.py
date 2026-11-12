@@ -44,7 +44,7 @@ st.markdown("""
 # ==========================================
 # 🔒 نظام الحماية والقفل الخاص بك وحدك
 # ==========================================
-SECRET_PASSWORD = "Waseem2026@"
+SECRET_PASSWORD = "1262006"
 
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
@@ -109,7 +109,7 @@ with st.sidebar:
     else:
         width, height = 1280, 720
 
-    model_choice = st.selectbox("🧠 دقة المحرك", ["flux", "turbo"])
+    model_choice = st.selectbox("🧠 دقة المحرك (Turbo أسرع بكثير)", ["turbo", "flux"])
     
     st.divider()
     watermark_text = st.text_input("🛡️ نص العلامة المائية للمعاينة", value="PREVIEW - غير مدفوع")
@@ -127,11 +127,14 @@ def translate_to_english(arabic_text):
         return arabic_text
 
 def fetch_image(prompt_text, w, h, model, seed):
-    encoded = urllib.parse.quote(prompt_text)
+    encoded = urllib.parse.quote(prompt_text, safe='')
     url = f"https://pollinations.ai{encoded}?width={w}&height={h}&model={model}&seed={seed}&nologo=true"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
     try:
-        response = requests.get(url, timeout=60)
-        if response.status_code == 200:
+        response = requests.get(url, headers=headers, timeout=90)
+        if response.status_code == 200 and len(response.content) > 1000:
             return response.content
     except Exception:
         return None
@@ -169,7 +172,7 @@ def generate_ai_copy_and_script(brand, request_ar):
         f"2. نص تعليق صوتي (Voiceover) مدته 15 ثانية يصلح لفيديو ريلز أو تيك توك.\n"
         f"اكتب الرد باللغة العربية الفصحى البسيطة والجاذبة مباشرة بدون مقدمات."
     )
-    encoded = urllib.parse.quote(prompt)
+    encoded = urllib.parse.quote(prompt, safe='')
     try:
         res = requests.get(f"https://pollinations.ai{encoded}", timeout=30)
         if res.status_code == 200:
@@ -180,7 +183,7 @@ def generate_ai_copy_and_script(brand, request_ar):
 
 def generate_voiceover(text_to_speak):
     clean_text = text_to_speak[:300]
-    encoded = urllib.parse.quote(clean_text)
+    encoded = urllib.parse.quote(clean_text, safe='')
     url = f"https://pollinations.ai{encoded}?model=openai-audio&voice=nova"
     try:
         res = requests.get(url, timeout=45)
@@ -215,8 +218,8 @@ with tab1:
         client_request_ar = st.text_area("📝 تفاصيل طلب العميل بالعربية", placeholder="مثال: شعار تاج ذهبي فاخر لمتجر ملابس، أو إعلان خصم 50% على العطور...")
 
     with col2:
-        num_variations = st.slider("🔢 عدد النماذج للتوليد", min_value=1, max_value=4, value=2)
-        do_transparent = st.checkbox("✂️ استخراج نسخة مفرغة بدون خلفية (PNG)", value=True)
+        num_variations = st.slider("🔢 عدد النماذج للتوليد", min_value=1, max_value=4, value=1)
+        do_transparent = st.checkbox("✂️ استخراج نسخة مفرغة بدون خلفية (PNG)", value=False)
         do_copywriting = st.checkbox("✍️ توليد إعلان تسويقي + سيناريو فيديو بالذكاء الاصطناعي", value=True)
         do_voice = st.checkbox("🎙️ توليد تعليق صوتي إعلاني جاهز (MP3)", value=False)
 
@@ -226,9 +229,9 @@ with tab1:
         else:
             with st.spinner("جاري تجهيز الحملة والتصاميم باحترافية..."):
                 desc_en = translate_to_english(client_request_ar)
-                clean_service = service_type.split("(")[0].strip()
-                clean_style = style.split("(")[0].strip()
-                clean_colors = color_palette.split("(")[0].strip()
+                clean_service = service_type.split("(").strip()
+                clean_style = style.split("(").strip()
+                clean_colors = color_palette.split("(").strip()
                 
                 final_prompt = (
                     f"{clean_service} for '{brand_name}', {desc_en}. "
@@ -260,8 +263,3 @@ with tab1:
                 with cols[i]:
                     with st.spinner(f"جاري تصميم النموذج #{i+1}..."):
                         seed = random.randint(1, 999999)
-                        img_bytes = fetch_image(final_prompt, width, height, model_choice, seed)
-                        if img_bytes:
-                            st.image(img_bytes, use_container_width=True, caption=f"التصميم الأصلي #{i+1}")
-
-    
