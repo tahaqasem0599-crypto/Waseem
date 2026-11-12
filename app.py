@@ -1,84 +1,265 @@
 import streamlit as st
-import google.generativeai as genai
+import urllib.parse
 import requests
-import base64
+import random
+from io import BytesIO
+from PIL import Image, ImageDraw, ImageFont
+from rembg import remove
+from deep_translator import GoogleTranslator
 
-# --- فك تعمية وتشفير المفتاح القديم تلقائياً لتجاوز فلاتر حماية جيت هاب ---
-encoded_key = "QVEuQWI4Uk42SmNNRUJwb0o4RUVkMVUzb0xjdldBNXJYQ09wSXQ4SllGQmFkVERnaXhScWc="
-DECRYPTED_GEMINI_KEY = base64.b64decode(encoded_key).decode("utf-8")
+# 1. إعدادات الصفحة والهوية الفاخرة
+st.set_page_config(
+    page_title="الوكالة الذكية المتكاملة | الاستوديو الخاص",
+    page_icon="👑",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-# تهيئة النواة الذكية السريعة لـ Gemini
-genai.configure(api_key=DECRYPTED_GEMINI_KEY)
-model_text = genai.GenerativeModel('gemini-1.5-flash')
-
-# --- إعداد واجهة التحكم الفائقة والعالمية (Ultra Fast UI) ---
-st.set_page_config(page_title="Al-Attar AI Core 2027", page_icon="🔱", layout="wide")
-
+# تحسين المظهر العام باللغة العربية والألوان الملكية
 st.markdown("""
     <style>
-    .main { background-color: #060913; color: #ffffff; }
-    div.stButton > button:first-child { background-color: #d4af37; color: #060913; font-weight: bold; border-radius: 12px; width: 100%; font-size: 18px; height: 55px; box-shadow: 0px 4px 20px rgba(212, 175, 55, 0.4); border: none; }
-    h1, h2, h3, h4 { color: #d4af37 !important; font-family: 'Cairo', sans-serif; text-align: right; }
-    p, span, div, label { text-align: right; color: #ffffff !important; font-family: 'Cairo', sans-serif; font-size: 16px; }
-    textarea, input { background-color: #111827 !important; color: #ffffff !important; border: 1px solid #d4af37 !important; text-align: right; direction: rtl; border-radius: 8px; }
-    div[data-testid="stMarkdownContainer"] p { text-align: right; }
-    .stTabs [data-baseweb="tab"] { color: #ffffff; font-size: 16px; }
-    .stTabs [aria-selected="true"] { color: #d4af37 !important; font-weight: bold; border-bottom-color: #d4af37 !important; }
+    .main {
+        background-color: #0b0d12;
+        direction: rtl;
+        text-align: right;
+    }
+    .stButton>button {
+        width: 100%;
+        border-radius: 10px;
+        height: 3.4em;
+        background: linear-gradient(90deg, #d4af37 0%, #aa7c11 100%);
+        color: #000000;
+        font-weight: bold;
+        font-size: 16px;
+        border: none;
+        transition: 0.3s;
+    }
+    .stButton>button:hover {
+        transform: scale(1.01);
+        box-shadow: 0px 4px 15px rgba(212, 175, 55, 0.4);
+    }
     </style>
-    """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-st.title("🔱 النواة العالمية المطورة لخدمات الذكاء الاصطناعي")
-st.write("الإصدار الأسرع والأحدث المخصص لإدارة وتنفيذ كافة طلبات الميديا والتصميم والنصوص للعالم أجمع.")
-st.markdown("---")
+# ==========================================
+# 🔒 نظام الحماية والقفل الخاص بك وحدك
+# ==========================================
+SECRET_PASSWORD = "Waseem2026@"  # غيّر كلمة المرور هذه إلى أي كلمة سر تريدها
 
-# تقسيم المنظومة الذكية لعلامات تبويب مباشرة وسريعة الفتح
-tab1, tab2 = st.tabs(["🎨 محرّك التصميم والشعارات الفاخرة", "📝 محرك النصوص والهندسة الإعلانية"])
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
 
-# --- التبويب الأول: ابتكار الصور والشعارات بالترجمة التلقائية ---
+if not st.session_state.authenticated:
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    col_empty1, col_login, col_empty2 = st.columns([1, 1.5, 1])
+    with col_login:
+        st.title("🔒 استوديو العمل الخاص")
+        st.markdown("نظام إدارة وتنفيذ طلبات العملاء الحصري.")
+        pwd_input = st.text_input("🔑 أدخل كلمة المرور السرية:", type="password")
+        if st.button("دخول إلى الاستوديو"):
+            if pwd_input == SECRET_PASSWORD:
+                st.session_state.authenticated = True
+                st.rerun()
+            else:
+                st.error("❌ كلمة المرور غير صحيحة!")
+    st.stop()
+# ==========================================
+
+# 2. الشريط الجانبي (إعدادات التصميم والحماية)
+with st.sidebar:
+    st.title("👑 مركز التحكم بالطلبات")
+    
+    style = st.selectbox(
+        "🎨 الأسلوب الفني العام",
+        [
+            "Minimalist & Luxury (بسيط وفاخر)",
+            "3D Modern Render (ثلاثي الأبعاد عصري)",
+            "Commercial Advertising (إعلاني تجاري احترافي)",
+            "Neon & Vibrant (ألوان نيون مشرقة وجذابة)",
+            "Realistic Studio Photo (تصوير استوديو واقعي)",
+            "Vintage & Classic (كلاسيكي عتيق)"
+        ]
+    )
+    
+    color_palette = st.selectbox(
+        "🌈 لوحة الألوان",
+        [
+            "Gold & Black (ذهبي وأسود ملكي)",
+            "Royal Blue & White (أزرق ملكي وأبيض)",
+            "Emerald Green & Cream (أخضر زمردي وكريمي)",
+            "Vibrant Red & Yellow (أحمر وأصفر للخصومات)",
+            "Pastel & Soft (ألوان ناعمة وهادئة)",
+            "Silver & Charcoal (فضي وفحمي داكن)"
+        ]
+    )
+    
+    aspect_ratio = st.radio(
+        "📐 مقاس المنصة المطلوب",
+        [
+            "مربع - بوست انستغرام/فيسبوك (1080x1080)",
+            "عمودي - ستوري/ريلز/تيك توك (720x1280)",
+            "أفقي - يوتيوب/غلاف فيسبوك (1280x720)"
+        ]
+    )
+    
+    if "1080x1080" in aspect_ratio:
+        width, height = 1080, 1080
+    elif "720x1280" in aspect_ratio:
+        width, height = 720, 1280
+    else:
+        width, height = 1280, 720
+
+    model_choice = st.selectbox("🧠 دقة المحرك", ["flux", "turbo"])
+    
+    st.divider()
+    watermark_text = st.text_input("🛡️ نص العلامة المائية للمعاينة", value="PREVIEW - غير مدفوع")
+    
+    st.divider()
+    if st.button("🚪 قفل الاستوديو والخروج"):
+        st.session_state.authenticated = False
+        st.rerun()
+
+# 3. الدوال الذكية المساعدة
+def translate_to_english(arabic_text):
+    try:
+        return GoogleTranslator(source='auto', target='en').translate(arabic_text)
+    except Exception:
+        return arabic_text
+
+def fetch_image(prompt_text, w, h, model, seed):
+    encoded = urllib.parse.quote(prompt_text)
+    url = f"https://pollinations.ai{encoded}?width={w}&height={h}&model={model}&seed={seed}&nologo=true"
+    try:
+        response = requests.get(url, timeout=60)
+        if response.status_code == 200:
+            return response.content
+    except Exception:
+        return None
+    return None
+
+def make_transparent(image_bytes):
+    input_image = Image.open(BytesIO(image_bytes)).convert("RGBA")
+    output_image = remove(input_image)
+    buf = BytesIO()
+    output_image.save(buf, format="PNG")
+    return buf.getvalue()
+
+def add_watermark(image_bytes, text):
+    img = Image.open(BytesIO(image_bytes)).convert("RGBA")
+    txt_layer = Image.new("RGBA", img.size, (255, 255, 255, 0))
+    draw = ImageDraw.Draw(txt_layer)
+    
+    w, h = img.size
+    step_x = int(w / 3)
+    step_y = int(h / 4)
+    
+    for x in range(20, w, step_x):
+        for y in range(20, h, step_y):
+            draw.text((x, y), text, fill=(255, 255, 255, 110))
+            
+    watermarked = Image.alpha_composite(img, txt_layer).convert("RGB")
+    buf = BytesIO()
+    watermarked.save(buf, format="JPEG", quality=90)
+    return buf.getvalue()
+
+def generate_ai_copy_and_script(brand, request_ar):
+    prompt = (
+        f"أنت خبير تسويق إلكتروني محترف. اكتب لمشروع '{brand}' حول '{request_ar}':\n"
+        f"1. بوست إعلاني قصير وجذاب للسوشيال ميديا مع إيموجي وهاشتاغات.\n"
+        f"2. نص تعليق صوتي (Voiceover) مدته 15 ثانية يصلح لفيديو ريلز أو تيك توك.\n"
+        f"اكتب الرد باللغة العربية الفصحى البسيطة والجاذبة مباشرة بدون مقدمات."
+    )
+    encoded = urllib.parse.quote(prompt)
+    try:
+        res = requests.get(f"https://pollinations.ai{encoded}", timeout=30)
+        if res.status_code == 200:
+            return res.text
+    except Exception:
+        pass
+    return f"🔥 عرض خاص من {brand}!\n✨ {request_ar}\n📩 تواصل معنا الآن عبر الرسائل للطلب والاستفسار!"
+
+def generate_voiceover(text_to_speak):
+    clean_text = text_to_speak[:300]
+    encoded = urllib.parse.quote(clean_text)
+    url = f"https://pollinations.ai{encoded}?model=openai-audio&voice=nova"
+    try:
+        res = requests.get(url, timeout=45)
+        if res.status_code == 200:
+            return res.content
+    except Exception:
+        return None
+    return None
+
+# 4. الواجهة الرئيسية المقسمة إلى تبويبات ربحية
+st.title("👑 الاستوديو الشامل لخدمات السوشيال ميديا والتجارة")
+
+tab1, tab2 = st.tabs([
+    "🎨 قسم 1: تصميم الشعارات والإعلانات + النصوص والصوت",
+    "📸 قسم 2: استوديو دمج وتصوير منتجات العملاء (Mockup)"
+])
+
+# ==========================================
+# القسم الأول: الشعارات والبوستات والنصوص والصوت
+# ==========================================
 with tab1:
-    st.subheader("🖼️ تصميم الصور والشعارات الفنية عالمياً")
-    st.write("💡 اكتب طلبك باللغة العربية بالكامل، وسيتكفل البرنامج بترجمته وصناعته بأعلى جودة تليق بزبائنك.")
-    
-    image_prompt = st.text_area("اصف هنا بدقة الصورة أو الشعار المطلوب إنتاجه للعميل:", key="img_p")
-    
-    if st.button("🚀 إطلاق محرك التصميم الفوري"):
-        if image_prompt:
-            with st.spinner("جاري ترجمة الطلب وابتكار الأبعاد الفنية الفخمة..."):
-                try:
-                    # أتمتة خطوة الترجمة: استخدام جيمي لترجمة الوصف بدقة خارقة إلى الإنجليزية أولاً في الخلفية
-                    translation_prompt = f"Translate the following Arabic prompt into a detailed, high-quality, professional image generation prompt for a vector/logo design. Only output the English translation, no other text: {image_prompt}"
-                    translated_response = model_text.generate_content(translation_prompt)
-                    final_english_prompt = translated_response.text.strip()
-                    
-                    # تمرير الرابط المترجم والمطور ديناميكياً
-                    encoded_prompt = requests.utils.quote(final_english_prompt)
-                    image_url = f"https://pollinations.ai{encoded_prompt}?width=1024&height=1024&nologo=true&enhance=true"
-                    
-                    image_res = requests.get(image_url)
-                    if image_res.status_code == 200:
-                        st.success("✅ تم ابتكار وتصنيع التصميم بنجاح عالمي فخم!")
-                        st.image(image_res.content, use_container_width=True)
-                        st.download_button(label="📥 تحميل التصميم الفخم فوراً على الهاتف", data=image_res.content, file_name="waseem_global_art.jpg", mime="image/jpeg")
-                    else:
-                        st.error("❌ واجه محرك الرسوم ضغطاً مؤقتاً، يرجى المحاولة مرة أخرى.")
-                except Exception as e:
-                    st.error(f"حدث خطأ أثناء التصنيع الرقمي: {e}")
-        else:
-            st.warning("⚠️ الرجاء كتابة وصف الصورة أو الشعار أولاً لتشغيل النظام.")
+    col1, col2 = st.columns(2)
+    with col1:
+        service_type = st.selectbox(
+            "🎯 نوع التصميم المطلوب",
+            [
+                "Logo Design (تصميم شعار وهوية بصرية)",
+                "Social Media Ad Post (بوست إعلاني وترويجي)",
+                "Instagram/TikTok Story & Reels Cover (ستوري وغلاف ريلز)",
+                "YouTube Thumbnail (صورة مصغرة لليوتيوب)",
+                "Logo Mockup on Luxury Business Card & Storefront (عرض الشعار على بطاقة ولافتة)"
+            ]
+        )
+        brand_name = st.text_input("🏢 اسم مشروع العميل", placeholder="مثال: متجر الأناقة")
+        client_request_ar = st.text_area("📝 تفاصيل طلب العميل بالعربية", placeholder="مثال: شعار تاج ذهبي فاخر لمتجر ملابس، أو إعلان خصم 50% على العطور...")
 
-# --- التبويب الثاني: توليد المقالات والإعلانات الفائقة السريعة ---
-with tab2:
-    st.subheader("✍️ الهندسة الإعلانية وصناعة المحتوى السريع")
-    text_prompt = st.text_area("اكتب تفاصيل المحتوى التسويقي أو البرمجي المطلوب:", key="text_p")
-    
-    if st.button("🚀 معالجة وتوليد النص الاحترافي"):
-        if text_prompt:
-            with st.spinner("جاري صياغة المحتوى بأعلى صياغة تسويقية جاذبة..."):
-                try:
-                    response = model_text.generate_content(f"تصرف كخبير كتابة إعلانات ومستشار تسويقي عالمي. نفذ الطلب التالي بأعلى درجات الفخامة الجاذبة للزبائن والانتشار السريع: {text_prompt}")
-                    st.success("✅ تم إنتاج النص الإعلاني بنجاح:")
-                    st.text_area("المنشور الجاهز للتسليم:", value=response.text, height=300)
-                except Exception as e:
-                    st.error(f"واجه المحرك النصي مشكلة: {e}")
+    with col2:
+        num_variations = st.slider("🔢 عدد النماذج للتوليد", min_value=1, max_value=4, value=2)
+        do_transparent = st.checkbox("✂️ استخراج نسخة مفرغة بدون خلفية (PNG)", value=True)
+        do_copywriting = st.checkbox("✍️ توليد إعلان تسويقي + سيناريو فيديو بالذكاء الاصطناعي", value=True)
+        do_voice = st.checkbox("🎙️ توليد تعليق صوتي إعلاني جاهز (MP3)", value=False)
+
+    if st.button("🚀 تنفيذ الباقة الكاملة للعميل"):
+        if not client_request_ar and not brand_name:
+            st.warning("⚠️ يرجى إدخال اسم المشروع أو وصف الطلب أولاً!")
         else:
-            st.warning("⚠️ الرجاء كتابة تفاصيل الطلب أولاً.")
+            with st.spinner("جاري تجهيز الحملة والتصاميم باحترافية..."):
+                desc_en = translate_to_english(client_request_ar)
+                clean_service = service_type.split("(").strip()
+                clean_style = style.split("(").strip()
+                clean_colors = color_palette.split("(").strip()
+                
+                final_prompt = (
+                    f"{clean_service} for '{brand_name}', {desc_en}. "
+                    f"Style: {clean_style}, Color palette: {clean_colors}. "
+                    f"Isolated clean design, Behance and Dribbble trending, ultra-detailed, "
+                    f"high contrast, studio quality, sharp focus, no watermark."
+                )
+
+            # توليد النصوص والصوت إذا تم تفعيلهما
+            if do_copywriting:
+                st.subheader("✍️ المحتوى التسويقي والسيناريو الجاهز للعميل:")
+                ai_text = generate_ai_copy_and_script(brand_name or "المتجر", client_request_ar)
+                st.info(ai_text)
+                
+                if do_voice:
+                    with st.spinner("🎙️ جاري تسجيل التعليق الصوتي الإعلاني..."):
+                        audio_bytes = generate_voiceover(ai_text)
+                        if audio_bytes:
+                            st.audio(audio_bytes, format="audio/mp3")
+                            st.download_button(
+                                label="⬇️ تحميل التعليق الصوتي (MP3)",
+                                data=audio_bytes,
+                                file_name=f"{brand_name or 'ad'}_voiceover.mp3",
+                                mime="audio/mp3"
+                            )
+
+            # توليد التصاميم
+            st.subheader("🎨 التصاميم الجاهزة (مع خيار الحماية قبل الدفع):")
+            cols = st.columns(num_variations)
+            for i in range(num_variations):
+                with cols[i]:
