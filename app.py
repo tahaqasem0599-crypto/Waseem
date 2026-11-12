@@ -3,7 +3,7 @@ import urllib.parse
 import requests
 import random
 from io import BytesIO
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 from rembg import remove
 from deep_translator import GoogleTranslator
 
@@ -44,7 +44,7 @@ st.markdown("""
 # ==========================================
 # 🔒 نظام الحماية والقفل الخاص بك وحدك
 # ==========================================
-SECRET_PASSWORD = "Waseem2026@"  # غيّر كلمة المرور هذه إلى أي كلمة سر تريدها
+SECRET_PASSWORD = "Waseem2026@"
 
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
@@ -65,7 +65,7 @@ if not st.session_state.authenticated:
     st.stop()
 # ==========================================
 
-# 2. الشريط الجانبي (إعدادات التصميم والحماية)
+# 2. الشريط الجانبي
 with st.sidebar:
     st.title("👑 مركز التحكم بالطلبات")
     
@@ -190,7 +190,7 @@ def generate_voiceover(text_to_speak):
         return None
     return None
 
-# 4. الواجهة الرئيسية المقسمة إلى تبويبات ربحية
+# 4. الواجهة الرئيسية
 st.title("👑 الاستوديو الشامل لخدمات السوشيال ميديا والتجارة")
 
 tab1, tab2 = st.tabs([
@@ -198,9 +198,6 @@ tab1, tab2 = st.tabs([
     "📸 قسم 2: استوديو دمج وتصوير منتجات العملاء (Mockup)"
 ])
 
-# ==========================================
-# القسم الأول: الشعارات والبوستات والنصوص والصوت
-# ==========================================
 with tab1:
     col1, col2 = st.columns(2)
     with col1:
@@ -240,7 +237,6 @@ with tab1:
                     f"high contrast, studio quality, sharp focus, no watermark."
                 )
 
-            # توليد النصوص والصوت إذا تم تفعيلهما
             if do_copywriting:
                 st.subheader("✍️ المحتوى التسويقي والسيناريو الجاهز للعميل:")
                 ai_text = generate_ai_copy_and_script(brand_name or "المتجر", client_request_ar)
@@ -258,8 +254,14 @@ with tab1:
                                 mime="audio/mp3"
                             )
 
-            # توليد التصاميم
             st.subheader("🎨 التصاميم الجاهزة (مع خيار الحماية قبل الدفع):")
             cols = st.columns(num_variations)
             for i in range(num_variations):
                 with cols[i]:
+                    with st.spinner(f"جاري تصميم النموذج #{i+1}..."):
+                        seed = random.randint(1, 999999)
+                        img_bytes = fetch_image(final_prompt, width, height, model_choice, seed)
+                        if img_bytes:
+                            st.image(img_bytes, use_container_width=True, caption=f"التصميم الأصلي #{i+1}")
+
+    
