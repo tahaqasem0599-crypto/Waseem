@@ -1,4 +1,6 @@
-google-generativeai
-requests
 streamlit
-Pillow
+requests
+pillow
+rembg
+onnxruntime
+deep-translator
