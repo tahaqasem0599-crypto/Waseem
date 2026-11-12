@@ -226,9 +226,9 @@ with tab1:
         else:
             with st.spinner("جاري تجهيز الحملة والتصاميم باحترافية..."):
                 desc_en = translate_to_english(client_request_ar)
-                clean_service = service_type.split("(").strip()
-                clean_style = style.split("(").strip()
-                clean_colors = color_palette.split("(").strip()
+                clean_service = service_type.split("(")[0].strip()
+                clean_style = style.split("(")[0].strip()
+                clean_colors = color_palette.split("(")[0].strip()
                 
                 final_prompt = (
                     f"{clean_service} for '{brand_name}', {desc_en}. "
